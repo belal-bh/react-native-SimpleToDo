@@ -1,4 +1,4 @@
-import React, {useState, useContext} from 'react';
+import React, {useState, useContext, useEffect} from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
 
 import ToDoHeader from '../components/ToDoHeader';
 import {ToDoListContext} from '../contexts/ToDoListContext';
+import {API_URL} from '../config';
 
 export default CreateToDoScreen = ({navigation}) => {
   const {toDoList, setToDoList} = useContext(ToDoListContext);
@@ -17,6 +18,7 @@ export default CreateToDoScreen = ({navigation}) => {
   const [toDoTitle, setToDoTitle] = useState('');
   const [toDoDescription, setToDoDescription] = useState('');
   const [validationMessage, setValidationMessage] = useState('');
+  const [isLoading, setLoading] = useState(false);
 
   console.log('toDoList:', toDoList);
 
@@ -32,6 +34,15 @@ export default CreateToDoScreen = ({navigation}) => {
     setToDoList([...toDoList, {...newToDo}]);
 
     console.log('toDoList:', toDoList);
+
+    setLoading(true);
+
+    uploadToDo(
+      JSON.stringify({
+        title: newToDo.toDoTitle,
+        description: newToDo.toDoDescription,
+      }),
+    );
   };
 
   const handleSubmit = () => {
@@ -50,6 +61,24 @@ export default CreateToDoScreen = ({navigation}) => {
     // console.log("Todo created:", toDo);
 
     navigation.navigate('Home_to_ToDo');
+  };
+
+  const uploadToDo = async data => {
+    try {
+      const response = await fetch(`${API_URL}todos/`, {
+        method: 'POST',
+        body: data,
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+      });
+      const json = await response.json();
+      console.log('data:', json);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

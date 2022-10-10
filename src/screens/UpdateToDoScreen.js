@@ -11,6 +11,9 @@ import {
 import ToDoHeader from '../components/ToDoHeader';
 import {ToDoListContext} from '../contexts/ToDoListContext';
 
+import {getToDoObject} from '../helpers/toDoHelpers';
+import {API_URL} from '../config';
+
 export default UpdateToDoScreen = ({navigation, route}) => {
   const {toDoList, setToDoList} = useContext(ToDoListContext);
   const toDoIndex = route.params.toDoIndex;
@@ -25,6 +28,7 @@ export default UpdateToDoScreen = ({navigation, route}) => {
   const [toDoIsCompleted, setToDoIsCompleted] = useState(
     toDoList[toDoIndex].isCompleted,
   );
+  const [isLoading, setLoading] = useState(false);
 
   // console.log(`${route.params.toDoIndex} => `, toDoList[toDoIndex]);
   // console.log(`state: ${toDoTitle}, ${toDoDescription}, ${toDoIsCompleted}`);
@@ -42,9 +46,16 @@ export default UpdateToDoScreen = ({navigation, route}) => {
       toDoTitle,
       toDoDescription,
     };
-    toDoList[toDoIndex] = theToDo;
-    setToDoList([...toDoList]);
+    // toDoList[toDoIndex] = theToDo;
+    // setToDoList([...toDoList]);
 
+    updateRemoteToDo(
+      theToDo.id,
+      JSON.stringify({
+        title: theToDo.toDoTitle,
+        description: theToDo.toDoDescription,
+      }),
+    );
     console.log('toDoList:', toDoList);
   };
 
@@ -64,6 +75,31 @@ export default UpdateToDoScreen = ({navigation, route}) => {
     // console.log("Todo created:", toDo);
 
     navigation.navigate('Home_to_ToDo');
+  };
+
+  const updateRemoteToDo = async (id, data) => {
+    try {
+      const response = await fetch(`${API_URL}todos/${id}/`, {
+        method: 'PATCH',
+        body: data,
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+      });
+      const json = await response.json();
+      const resToDo = getToDoObject(json);
+      setToDoList(
+        toDoList.map(toDoItem => {
+          if (toDoItem.id === resToDo.id) return resToDo;
+          return toDoItem;
+        }),
+      );
+      console.log('data:', json);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

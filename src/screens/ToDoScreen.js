@@ -1,4 +1,4 @@
-import React, {useContext} from 'react';
+import React, {useState, useContext, useEffect} from 'react';
 import {useNavigation} from '@react-navigation/native';
 import {
   View,
@@ -9,7 +9,9 @@ import {
   Image,
 } from 'react-native';
 
+import {API_URL} from '../config';
 import {ToDoListContext} from '../contexts/ToDoListContext';
+import {getToDoObject, getToDoObjectList} from '../helpers/toDoHelpers';
 
 const dateToString = date => {
   try {
@@ -30,22 +32,56 @@ const Item = ({toDo, index}) => {
   console.log('toDo:', toDo);
   const {toDoList, setToDoList} = useContext(ToDoListContext);
 
-  const complteteToDo = index => {
-    const theToDo = toDoList[index];
-    theToDo.isCompleted = !theToDo.isCompleted;
+  const [isLoading, setLoading] = useState(false);
 
-    toDoList[index] = theToDo;
-    setToDoList([...toDoList]);
+  const toggleToDoIsCompleted = index => {
+    const theToDo = toDoList[index];
+    // theToDo.isCompleted = !theToDo.isCompleted;
+
+    updateRemoteToDo(
+      theToDo.id,
+      JSON.stringify({
+        is_completed: !theToDo.isCompleted,
+      }),
+    );
+
+    // toDoList[index] = theToDo;
+    // setToDoList([...toDoList]);
 
     console.log('toDoList:', toDoList);
   };
 
   const handleClickToDoCompletion = () => {
-    complteteToDo(index);
+    toggleToDoIsCompleted(index);
   };
 
   const handleClickUpdateToDo = () => {
     navigation.navigate('ToDo_to_UpdateToDo', {toDoIndex: index});
+  };
+
+  const updateRemoteToDo = async (id, data) => {
+    try {
+      const response = await fetch(`${API_URL}todos/${id}/`, {
+        method: 'PATCH',
+        body: data,
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+      });
+      const json = await response.json();
+      const resToDo = getToDoObject(json);
+      setToDoList(
+        toDoList.map(toDoItem => {
+          if (toDoItem.id === resToDo.id) return resToDo;
+          return toDoItem;
+        }),
+      );
+      console.log('data:', json);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -88,7 +124,29 @@ const Item = ({toDo, index}) => {
 };
 
 export default ToDoScreen = ({navigation}) => {
-  const {toDoList} = useContext(ToDoListContext);
+  const {toDoList, setToDoList} = useContext(ToDoListContext);
+
+  const [isLoading, setLoading] = useState(true);
+  const [data, setData] = useState([]);
+
+  const getToDos = async () => {
+    try {
+      const response = await fetch(`${API_URL}todos/`);
+      const json = await response.json();
+      setData(json);
+      console.log('data:', json);
+
+      setToDoList(getToDoObjectList(json));
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    getToDos();
+  }, []);
 
   const renderItem = ({item, index}) => {
     console.log('index', index);

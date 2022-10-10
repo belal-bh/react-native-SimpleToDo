@@ -11,6 +11,7 @@ import {StackActions} from '@react-navigation/native';
 import {UserContext} from '../contexts/UserContext';
 
 import ToDoHeader from '../components/ToDoHeader';
+import {API_URL} from '../config';
 
 export default HomeScreen = ({navigation}) => {
   const {user, setUser} = useContext(UserContext);
@@ -34,6 +35,15 @@ export default HomeScreen = ({navigation}) => {
       userFullName: userName,
       loggedIn: true,
     });
+
+    // fetch('GET', `${API_URL}todos/`)
+    //   .then(response => {
+    //     return response.json();
+    //   })
+    //   .then(data => {
+    //     console.log('data:', data);
+    //   })
+    //   .catch(err => console.log('Error:', err));
 
     navigation.dispatch(StackActions.replace('Home_to_ToDo'));
 
