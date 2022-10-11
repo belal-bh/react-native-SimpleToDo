@@ -7,25 +7,13 @@ import {
   TouchableOpacity,
   FlatList,
   Image,
+  ActivityIndicator,
 } from 'react-native';
 
-import {API_URL} from '../config';
+import {API_URL, WAITING_TIME} from '../config';
 import {ToDoListContext} from '../contexts/ToDoListContext';
 import {getToDoObject, getToDoObjectList} from '../helpers/toDoHelpers';
-
-const dateToString = date => {
-  try {
-    const dd = String(date.getDate()).padStart(2, '0');
-    const mm = String(date.getMonth() + 1).padStart(2, '0'); //January is 0!
-    const yyyy = String(date.getFullYear());
-
-    const dateStr = dd + '/' + mm + '/' + yyyy.slice(2, 4);
-    return dateStr;
-  } catch (err) {
-    console.log('💥💥💥 ERROR: ', err);
-    return '';
-  }
-};
+import {wait, dateToString} from '../helpers/helpers';
 
 const Item = ({toDo, index}) => {
   const navigation = useNavigation();
@@ -48,20 +36,23 @@ const Item = ({toDo, index}) => {
     // toDoList[index] = theToDo;
     // setToDoList([...toDoList]);
 
-    console.log('toDoList:', toDoList);
+    // console.log('toDoList:', toDoList);
   };
 
   const handleClickToDoCompletion = () => {
+    setLoading(true);
     toggleToDoIsCompleted(index);
   };
 
   const handleClickUpdateToDo = () => {
+    console.log('clicked...');
     navigation.navigate('ToDo_to_UpdateToDo', {toDoIndex: index});
   };
 
   const updateRemoteToDo = async (id, data) => {
     try {
       console.log(`id=${id}`);
+      await wait(WAITING_TIME);
       const response = await fetch(`${API_URL}todos/${id}/`, {
         method: 'PATCH',
         body: data,
@@ -88,6 +79,7 @@ const Item = ({toDo, index}) => {
   return (
     <View style={styles.item}>
       <TouchableOpacity
+        disabled={isLoading}
         style={styles.titleContainerView}
         onPress={() => handleClickUpdateToDo()}>
         <Text style={styles.title}>
@@ -108,16 +100,20 @@ const Item = ({toDo, index}) => {
       <View style={styles.itemRightSightView}>
         <Text style={styles.itemDateView}>{dateToString(toDo.createdAt)}</Text>
         <TouchableOpacity
+          disabled={isLoading}
           style={styles.itemCheckView}
           onPress={() => handleClickToDoCompletion()}>
-          <Image
-            style={styles.toDoCompletionImageView}
-            source={
-              toDo.isCompleted
-                ? require('./../assets/imgs/done.png')
-                : require('./../assets/imgs/due.png')
-            }
-          />
+          {isLoading && <ActivityIndicator size="small" />}
+          {!isLoading && (
+            <Image
+              style={styles.toDoCompletionImageView}
+              source={
+                toDo.isCompleted
+                  ? require('./../assets/imgs/done.png')
+                  : require('./../assets/imgs/due.png')
+              }
+            />
+          )}
         </TouchableOpacity>
       </View>
     </View>
@@ -132,6 +128,7 @@ export default ToDoScreen = ({navigation}) => {
 
   const getToDos = async () => {
     try {
+      await wait(WAITING_TIME);
       const response = await fetch(`${API_URL}todos/`);
       const json = await response.json();
       setData(json);
@@ -161,6 +158,7 @@ export default ToDoScreen = ({navigation}) => {
         <View style={styles.headViewContainer}>
           <Text style={{fontWeight: 'bold'}}>My ToDos</Text>
           <TouchableOpacity
+            disabled={isLoading}
             onPress={() => navigation.navigate('ToDo_to_CreateToDo')}>
             <Text
               style={{
@@ -173,6 +171,12 @@ export default ToDoScreen = ({navigation}) => {
           </TouchableOpacity>
         </View>
         <View style={styles.listViewContainer}>
+          {isLoading && (
+            <View style={styles.loadingView}>
+              <ActivityIndicator size="large" />
+              <Text>Loading ToDos</Text>
+            </View>
+          )}
           {toDoList.length > 0 && (
             <FlatList
               data={toDoList}
@@ -266,8 +270,14 @@ const styles = StyleSheet.create({
     padding: 5,
   },
   toDoCompletionImageView: {
-    width: 35,
-    height: 30,
+    width: 20,
+    height: 20,
     resizeMode: 'stretch',
+  },
+  loadingView: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    alignContent: 'center',
+    textAlign: 'center',
   },
 });

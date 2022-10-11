@@ -6,13 +6,15 @@ import {
   TouchableOpacity,
   TextInput,
   ScrollView,
+  ActivityIndicator,
 } from 'react-native';
 
 import ToDoHeader from '../components/ToDoHeader';
 import {ToDoListContext} from '../contexts/ToDoListContext';
 
 import {getToDoObject} from '../helpers/toDoHelpers';
-import {API_URL} from '../config';
+import {wait} from '../helpers/helpers';
+import {API_URL, WAITING_TIME} from '../config';
 
 export default UpdateToDoScreen = ({navigation, route}) => {
   const {toDoList, setToDoList} = useContext(ToDoListContext);
@@ -30,17 +32,9 @@ export default UpdateToDoScreen = ({navigation, route}) => {
   );
   const [isLoading, setLoading] = useState(false);
 
-  // console.log(`${route.params.toDoIndex} => `, toDoList[toDoIndex]);
-  // console.log(`state: ${toDoTitle}, ${toDoDescription}, ${toDoIsCompleted}`);
-
-  // useEffect(()=> {
-  //     console.log('affected');
-  //     if(toDoList[toDoIndex].toDoTitle !== toDoTitle) setToDoTitle(toDoList[toDoIndex].toDoTitle);
-  //     if(toDoList[toDoIndex].toDoDescription !== toDoDescription) setToDoDescription(toDoList[toDoIndex].toDoDescription);
-  //     if(toDoList[toDoIndex].isCompleted !== toDoIsCompleted) setToDoIsCompleted(toDoList[toDoIndex].isCompleted);
-  // }, [toDoList[toDoIndex].toDoTitle, toDoList[toDoIndex].toDoDescription, toDoList[toDoIndex].isCompleted]);
-
   const updateToDo = (toDoTitle, toDoDescription = '') => {
+    setLoading(true);
+
     const theToDo = {
       ...toDoList[toDoIndex],
       toDoTitle,
@@ -56,7 +50,6 @@ export default UpdateToDoScreen = ({navigation, route}) => {
         description: theToDo.toDoDescription,
       }),
     );
-    console.log('toDoList:', toDoList);
   };
 
   const handleSubmit = () => {
@@ -73,12 +66,11 @@ export default UpdateToDoScreen = ({navigation, route}) => {
     console.log('Todo data:', toDoTitle, toDoDescription);
     updateToDo(toDoTitle, toDoDescription);
     // console.log("Todo created:", toDo);
-
-    navigation.navigate('Home_to_ToDo');
   };
 
   const updateRemoteToDo = async (id, data) => {
     try {
+      await wait(WAITING_TIME);
       const response = await fetch(`${API_URL}todos/${id}/`, {
         method: 'PATCH',
         body: data,
@@ -99,6 +91,7 @@ export default UpdateToDoScreen = ({navigation, route}) => {
       console.error(error);
     } finally {
       setLoading(false);
+      navigation.navigate('Home_to_ToDo');
     }
   };
 
@@ -108,6 +101,7 @@ export default UpdateToDoScreen = ({navigation, route}) => {
       <View style={styles.container}>
         <View style={styles.backButtonContainer}>
           <TouchableOpacity
+            disabled={isLoading}
             onPress={() => {
               navigation.pop();
             }}>
@@ -115,7 +109,7 @@ export default UpdateToDoScreen = ({navigation, route}) => {
           </TouchableOpacity>
         </View>
         <View style={styles.headViewContainer}>
-          <Text style={{fontWeight: 'bold'}}>ToDo</Text>
+          <Text style={{fontWeight: 'bold'}}>My ToDo</Text>
         </View>
         <ScrollView style={styles.inputViewContainer}>
           <View style={styles.inputGroupView}>
@@ -151,9 +145,19 @@ export default UpdateToDoScreen = ({navigation, route}) => {
           {!toDoIsCompleted && (
             <View style={styles.submitButtonContainer}>
               <TouchableOpacity
+                disabled={isLoading}
                 style={styles.submitButtonView}
                 onPress={() => handleSubmit()}>
-                <Text style={styles.submitButtonTextView}>Update</Text>
+                <Text style={styles.submitButtonTextView}>
+                  {isLoading ? (
+                    <Text>
+                      <ActivityIndicator size="small" color="#fff" />
+                      <Text>Updating</Text>
+                    </Text>
+                  ) : (
+                    'Update'
+                  )}
+                </Text>
               </TouchableOpacity>
             </View>
           )}

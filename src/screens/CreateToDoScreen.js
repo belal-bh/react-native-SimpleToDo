@@ -6,12 +6,14 @@ import {
   TouchableOpacity,
   TextInput,
   ScrollView,
+  ActivityIndicator,
 } from 'react-native';
 
 import ToDoHeader from '../components/ToDoHeader';
 import {ToDoListContext} from '../contexts/ToDoListContext';
 import {getToDoObject} from '../helpers/toDoHelpers';
-import {API_URL} from '../config';
+import {wait} from '../helpers/helpers';
+import {API_URL, WAITING_TIME} from '../config';
 
 export default CreateToDoScreen = ({navigation}) => {
   const {toDoList, setToDoList} = useContext(ToDoListContext);
@@ -21,7 +23,7 @@ export default CreateToDoScreen = ({navigation}) => {
   const [validationMessage, setValidationMessage] = useState('');
   const [isLoading, setLoading] = useState(false);
 
-  console.log('toDoList:', toDoList);
+  // console.log('toDoList:', toDoList);
 
   const createToDo = (toDoTitle, toDoDescription = '') => {
     setLoading(true);
@@ -32,7 +34,6 @@ export default CreateToDoScreen = ({navigation}) => {
         description: toDoDescription,
       }),
     );
-    setLoading(false);
   };
 
   const handleSubmit = () => {
@@ -49,12 +50,11 @@ export default CreateToDoScreen = ({navigation}) => {
     console.log('Todo data:', toDoTitle, toDoDescription);
     createToDo(toDoTitle, toDoDescription);
     // console.log("Todo created:", toDo);
-
-    navigation.navigate('Home_to_ToDo');
   };
 
   const uploadToDo = async data => {
     try {
+      await wait(WAITING_TIME);
       const response = await fetch(`${API_URL}todos/`, {
         method: 'POST',
         body: data,
@@ -70,6 +70,7 @@ export default CreateToDoScreen = ({navigation}) => {
       console.error(error);
     } finally {
       setLoading(false);
+      navigation.navigate('Home_to_ToDo');
     }
   };
 
@@ -79,6 +80,7 @@ export default CreateToDoScreen = ({navigation}) => {
       <View style={styles.container}>
         <View style={styles.backButtonContainer}>
           <TouchableOpacity
+            disabled={isLoading}
             onPress={() => {
               navigation.pop();
             }}>
@@ -119,9 +121,19 @@ export default CreateToDoScreen = ({navigation}) => {
           </View>
           <View style={styles.submitButtonContainer}>
             <TouchableOpacity
+              disabled={isLoading}
               style={styles.submitButtonView}
               onPress={() => handleSubmit()}>
-              <Text style={styles.submitButtonTextView}>Create</Text>
+              <Text style={styles.submitButtonTextView}>
+                {isLoading ? (
+                  <Text>
+                    <ActivityIndicator size="small" color="#fff" />
+                    <Text>Uploading</Text>
+                  </Text>
+                ) : (
+                  'Create'
+                )}
+              </Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
