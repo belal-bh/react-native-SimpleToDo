@@ -40,7 +40,7 @@ export default CreateToDoScreen = ({navigation}) => {
     setToDoDescription(toDoDescription.trim());
 
     if (!toDoTitle) {
-      setValidationMessage('ToDo title is required!');
+      setValidationMessage('ToDo title is required.');
       return;
     }
 
