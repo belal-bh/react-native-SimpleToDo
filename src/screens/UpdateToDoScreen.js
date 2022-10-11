@@ -215,6 +215,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     textAlignVertical: 'top',
     marginTop: 5,
+    color: '#000',
   },
   submitButtonContainer: {
     alignItems: 'flex-end',
