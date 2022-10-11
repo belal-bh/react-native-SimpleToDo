@@ -29,7 +29,7 @@ const dateToString = date => {
 
 const Item = ({toDo, index}) => {
   const navigation = useNavigation();
-  console.log('toDo:', toDo);
+  // console.log('toDo:', toDo);
   const {toDoList, setToDoList} = useContext(ToDoListContext);
 
   const [isLoading, setLoading] = useState(false);
@@ -150,7 +150,7 @@ export default ToDoScreen = ({navigation}) => {
   }, []);
 
   const renderItem = ({item, index}) => {
-    console.log('index', index);
+    // console.log('index', index);
     return <Item toDo={item} index={index} />;
   };
 
