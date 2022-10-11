@@ -61,6 +61,7 @@ const Item = ({toDo, index}) => {
 
   const updateRemoteToDo = async (id, data) => {
     try {
+      console.log(`id=${id}`);
       const response = await fetch(`${API_URL}todos/${id}/`, {
         method: 'PATCH',
         body: data,

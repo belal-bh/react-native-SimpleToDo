@@ -22,7 +22,7 @@ export default HomeScreen = ({navigation}) => {
   const handleSubmit = () => {
     setUserName(userName.trim());
     if (!userName) {
-      setValidationMessage('Name is required!');
+      setValidationMessage('Name is required.');
       return;
     }
 
@@ -35,15 +35,6 @@ export default HomeScreen = ({navigation}) => {
       userFullName: userName,
       loggedIn: true,
     });
-
-    // fetch('GET', `${API_URL}todos/`)
-    //   .then(response => {
-    //     return response.json();
-    //   })
-    //   .then(data => {
-    //     console.log('data:', data);
-    //   })
-    //   .catch(err => console.log('Error:', err));
 
     navigation.dispatch(StackActions.replace('Home_to_ToDo'));
 
@@ -63,11 +54,14 @@ export default HomeScreen = ({navigation}) => {
             onChangeText={text => {
               text = text.slice(0, 18);
               setUserName(text);
-              console.log(text);
+              // console.log(text);
+              if (text && validationMessage) setValidationMessage('');
             }}
           />
           {validationMessage && (
-            <Text style={{color: 'red'}}>{validationMessage}</Text>
+            <Text style={styles.validationMessageView}>
+              {validationMessage}
+            </Text>
           )}
         </View>
         <View style={styles.buttonViewContainer}>
@@ -124,5 +118,13 @@ const styles = StyleSheet.create({
   buttonTextView: {
     color: 'white',
     fontSize: 20,
+  },
+  validationMessageView: {
+    width: '80%',
+    justifyContent: 'flex-start',
+    alignItems: 'flex-start',
+    // backgroundColor: 'green',
+    paddingHorizontal: 10,
+    color: 'red',
   },
 });

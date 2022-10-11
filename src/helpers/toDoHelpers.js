@@ -7,6 +7,7 @@ export const getToDoObject = data => {
     isCompleted:
       typeof data?.is_completed === 'boolean' ? data.is_completed : false,
   };
+  console.log('getToDoObject =>', toDo.id);
   return toDo;
 };
 

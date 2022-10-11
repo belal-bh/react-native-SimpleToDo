@@ -10,6 +10,7 @@ import {
 
 import ToDoHeader from '../components/ToDoHeader';
 import {ToDoListContext} from '../contexts/ToDoListContext';
+import {getToDoObject} from '../helpers/toDoHelpers';
 import {API_URL} from '../config';
 
 export default CreateToDoScreen = ({navigation}) => {
@@ -23,26 +24,15 @@ export default CreateToDoScreen = ({navigation}) => {
   console.log('toDoList:', toDoList);
 
   const createToDo = (toDoTitle, toDoDescription = '') => {
-    const now = new Date();
-    const newToDo = {
-      toDoTitle,
-      toDoDescription,
-      createdAt: now,
-      isCompleted: false,
-    };
-
-    setToDoList([...toDoList, {...newToDo}]);
-
-    console.log('toDoList:', toDoList);
-
     setLoading(true);
 
     uploadToDo(
       JSON.stringify({
-        title: newToDo.toDoTitle,
-        description: newToDo.toDoDescription,
+        title: toDoTitle,
+        description: toDoDescription,
       }),
     );
+    setLoading(false);
   };
 
   const handleSubmit = () => {
@@ -73,6 +63,8 @@ export default CreateToDoScreen = ({navigation}) => {
         },
       });
       const json = await response.json();
+      const newToDo = getToDoObject(json);
+      setToDoList([...toDoList, {...newToDo}]);
       console.log('data:', json);
     } catch (error) {
       console.error(error);
