@@ -21,6 +21,7 @@ const Item = ({toDo, index}) => {
   const {toDoList, setToDoList} = useContext(ToDoListContext);
 
   const [isLoading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const toggleToDoIsCompleted = index => {
     const theToDo = toDoList[index];
@@ -69,53 +70,60 @@ const Item = ({toDo, index}) => {
         }),
       );
       console.log('data:', json);
+      if(errorMessage) setErrorMessage("");
     } catch (error) {
-      console.error(error);
+      console.log(error);
+      setErrorMessage("Something went wrong.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <View style={styles.item}>
-      <TouchableOpacity
-        disabled={isLoading}
-        style={styles.titleContainerView}
-        onPress={() => handleClickUpdateToDo()}>
-        <Text style={styles.title}>
-          <Text>
-            {index + 1}
-            {'. '}
-          </Text>
-          <Text
-            style={{
-              textDecorationLine: toDo.isCompleted ? 'line-through' : 'none',
-            }}>
-            {toDo.toDoTitle.length > 22
-              ? toDo.toDoTitle.slice(0, 22) + '...'
-              : toDo.toDoTitle}
-          </Text>
-        </Text>
-      </TouchableOpacity>
-      <View style={styles.itemRightSightView}>
-        <Text style={styles.itemDateView}>{dateToString(toDo.createdAt)}</Text>
+    <View style={styles.itemViewContainer}>
+      <View style={styles.item}>
         <TouchableOpacity
           disabled={isLoading}
-          style={styles.itemCheckView}
-          onPress={() => handleClickToDoCompletion()}>
-          {isLoading && <ActivityIndicator size="small" />}
-          {!isLoading && (
-            <Image
-              style={styles.toDoCompletionImageView}
-              source={
-                toDo.isCompleted
-                  ? require('./../assets/imgs/done.png')
-                  : require('./../assets/imgs/due.png')
-              }
-            />
-          )}
+          style={styles.titleContainerView}
+          onPress={() => handleClickUpdateToDo()}>
+          <Text style={styles.title}>
+            <Text>
+              {index + 1}
+              {'. '}
+            </Text>
+            <Text
+              style={{
+                textDecorationLine: toDo.isCompleted ? 'line-through' : 'none',
+              }}>
+              {toDo.toDoTitle.length > 22
+                ? toDo.toDoTitle.slice(0, 22) + '...'
+                : toDo.toDoTitle}
+            </Text>
+          </Text>
         </TouchableOpacity>
+        <View style={styles.itemRightSightView}>
+          <Text style={styles.itemDateView}>{dateToString(toDo.createdAt)}</Text>
+          <TouchableOpacity
+            disabled={isLoading}
+            style={styles.itemCheckView}
+            onPress={() => handleClickToDoCompletion()}>
+            {isLoading && <ActivityIndicator size="small" />}
+            {!isLoading && (
+              <Image
+                style={styles.toDoCompletionImageView}
+                source={
+                  toDo.isCompleted
+                    ? require('./../assets/imgs/done.png')
+                    : require('./../assets/imgs/due.png')
+                }
+              />
+            )}
+          </TouchableOpacity>
+        </View>
       </View>
+      {errorMessage && <View style={styles.errorMessageContainer}>
+        <Text style={styles.errorMessageTextView}>{errorMessage}</Text>
+      </View>}
     </View>
   );
 };
@@ -123,8 +131,9 @@ const Item = ({toDo, index}) => {
 export default ToDoScreen = ({navigation}) => {
   const {toDoList, setToDoList} = useContext(ToDoListContext);
 
-  const [isLoading, setLoading] = useState(true);
   const [data, setData] = useState([]);
+  const [isLoading, setLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const getToDos = async () => {
     try {
@@ -135,8 +144,10 @@ export default ToDoScreen = ({navigation}) => {
       console.log('data:', json);
 
       setToDoList(getToDoObjectList(json));
+      if(errorMessage) setErrorMessage("");
     } catch (error) {
-      console.error(error);
+      console.log(error);
+      setErrorMessage("Something went wrong.");
     } finally {
       setLoading(false);
     }
@@ -175,6 +186,11 @@ export default ToDoScreen = ({navigation}) => {
             <View style={styles.loadingView}>
               <ActivityIndicator size="large" />
               <Text>Loading ToDos</Text>
+            </View>
+          )}
+          {errorMessage && (
+            <View style={styles.loadingView}>
+              <Text style={{color: 'red'}}>{errorMessage}</Text>
             </View>
           )}
           {toDoList.length > 0 && (
@@ -225,14 +241,26 @@ const styles = StyleSheet.create({
     width: '100%',
     paddingLeft: 20,
   },
+  itemViewContainer: {
+    marginVertical: 8,
+    marginHorizontal: 5,
+    // backgroundColor: 'red',
+  },
+  errorMessageContainer: {
+    paddingHorizontal: 10,
+  },
+  errorMessageTextView: {
+    color: 'red',
+    fontSize: 12,
+  },
   item: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
     backgroundColor: '#c5c5c5',
     padding: 5,
-    marginVertical: 8,
-    marginHorizontal: 5,
+    // marginVertical: 8,
+    // marginHorizontal: 5,
     // height: 50,
     borderRadius: 5,
   },
