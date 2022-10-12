@@ -7,6 +7,7 @@ import {
   TextInput,
   ScrollView,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 
 import ToDoHeader from '../components/ToDoHeader';
@@ -22,15 +23,16 @@ export default UpdateToDoScreen = ({navigation, route}) => {
 
   // console.log('toDoList:', toDoList);
 
-  const [toDoTitle, setToDoTitle] = useState(toDoList[toDoIndex].toDoTitle);
+  const [toDoTitle, setToDoTitle] = useState(toDoList[toDoIndex]?.toDoTitle);
   const [toDoDescription, setToDoDescription] = useState(
-    toDoList[toDoIndex].toDoDescription,
+    toDoList[toDoIndex]?.toDoDescription,
   );
   const [validationMessage, setValidationMessage] = useState('');
   const [toDoIsCompleted, setToDoIsCompleted] = useState(
-    toDoList[toDoIndex].isCompleted,
+    toDoList[toDoIndex]?.isCompleted,
   );
   const [isLoading, setLoading] = useState(false);
+  const [isDeleting, setDeleting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
   const updateToDo = (toDoTitle, toDoDescription = '') => {
@@ -53,6 +55,12 @@ export default UpdateToDoScreen = ({navigation, route}) => {
     );
   };
 
+  const deleteToDo = () => {
+    setDeleting(true);
+    const theToDo = toDoList[toDoIndex];
+    deleteRemoteToDo(theToDo.id);
+  };
+
   const handleSubmit = () => {
     setToDoTitle(toDoTitle.trim());
     setToDoDescription(toDoDescription.trim());
@@ -67,6 +75,10 @@ export default UpdateToDoScreen = ({navigation, route}) => {
     console.log('Todo data:', toDoTitle, toDoDescription);
     updateToDo(toDoTitle, toDoDescription);
     // console.log("Todo created:", toDo);
+  };
+
+  const handleSubmitDeleteToDo = () => {
+    deleteToDo();
   };
 
   const updateRemoteToDo = async (id, data) => {
@@ -101,6 +113,56 @@ export default UpdateToDoScreen = ({navigation, route}) => {
       setLoading(false);
     }
   };
+
+  const deleteRemoteToDo = async id => {
+    try {
+      await wait(WAITING_TIME);
+      const response = await fetch(`${API_URL}todos/${id}/`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+      });
+      console.log(response);
+      // const json = await response.json();
+      // console.log(json);
+      // later
+      setToDoList(
+        toDoList.filter(toDoItem => {
+          if (toDoItem.id === id) return false;
+          return true;
+        }),
+      );
+      // console.log('data:', json);
+
+      if (errorMessage) setErrorMessage('');
+
+      // succesfully deleted
+      setDeleting(false);
+      navigation.navigate('Home_to_ToDo');
+    } catch (error) {
+      console.log(error);
+      setErrorMessage('Something went wrong.');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const createTwoButtonAlert = () =>
+    Alert.alert('Confirm Delete', 'Are you sure to delete ToDo?', [
+      {
+        text: 'Cancel',
+        onPress: () => console.log('Cancel Pressed'),
+        style: 'cancel',
+      },
+      {
+        text: 'Delete',
+        onPress: () => {
+          console.log('Delete Pressed');
+          handleSubmitDeleteToDo();
+        },
+      },
+    ]);
 
   return (
     <View style={styles.mainContainer}>
@@ -145,25 +207,44 @@ export default UpdateToDoScreen = ({navigation, route}) => {
               onChangeText={text => setToDoDescription(text)}
             />
           </View>
-          {!toDoIsCompleted && (
-            <View style={styles.submitButtonContainer}>
+          <View style={styles.buttonContainer}>
+            <View style={styles.deleteButtonContainer}>
               <TouchableOpacity
                 disabled={isLoading}
                 style={styles.submitButtonView}
-                onPress={() => handleSubmit()}>
+                onPress={() => createTwoButtonAlert()}>
                 <Text style={styles.submitButtonTextView}>
-                  {isLoading ? (
+                  {isDeleting ? (
                     <Text>
-                      <ActivityIndicator size="small" color="#fff" />
-                      <Text>Updating</Text>
+                      <ActivityIndicator size="small" color="red" />
+                      <Text>Deleting</Text>
                     </Text>
                   ) : (
-                    'Update'
+                    'Delete'
                   )}
                 </Text>
               </TouchableOpacity>
             </View>
-          )}
+            {!toDoIsCompleted && (
+              <View style={styles.submitButtonContainer}>
+                <TouchableOpacity
+                  disabled={isLoading}
+                  style={styles.submitButtonView}
+                  onPress={() => handleSubmit()}>
+                  <Text style={styles.submitButtonTextView}>
+                    {isLoading ? (
+                      <Text>
+                        <ActivityIndicator size="small" color="#fff" />
+                        <Text>Updating</Text>
+                      </Text>
+                    ) : (
+                      'Update'
+                    )}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
         </ScrollView>
       </View>
     </View>
@@ -224,6 +305,15 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
     marginTop: 5,
     color: '#000',
+  },
+  buttonContainer: {
+    // backgroundColor: 'red',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  deleteButtonContainer: {
+    alignItems: 'flex-start',
+    marginTop: 20,
   },
   submitButtonContainer: {
     alignItems: 'flex-end',
