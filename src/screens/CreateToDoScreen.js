@@ -22,6 +22,7 @@ export default CreateToDoScreen = ({navigation}) => {
   const [toDoDescription, setToDoDescription] = useState('');
   const [validationMessage, setValidationMessage] = useState('');
   const [isLoading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   // console.log('toDoList:', toDoList);
 
@@ -66,11 +67,16 @@ export default CreateToDoScreen = ({navigation}) => {
       const newToDo = getToDoObject(json);
       setToDoList([...toDoList, {...newToDo}]);
       console.log('data:', json);
-    } catch (error) {
-      console.error(error);
-    } finally {
+      if(errorMessage) setErrorMessage("");
+
+      // succesfully created
       setLoading(false);
       navigation.navigate('Home_to_ToDo');
+    } catch (error) {
+      console.log(error);
+      setErrorMessage("Something went wrong.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -90,6 +96,9 @@ export default CreateToDoScreen = ({navigation}) => {
         <View style={styles.headViewContainer}>
           <Text style={{fontWeight: 'bold'}}>Create new ToDo</Text>
         </View>
+        {errorMessage && <View style={styles.errorMessageContainer}>
+          <Text style={styles.errorMessageTextView}>{errorMessage}</Text>
+        </View>}
         <ScrollView style={styles.inputViewContainer}>
           <View style={styles.inputGroupView}>
             <Text>
@@ -176,6 +185,18 @@ const styles = StyleSheet.create({
     // backgroundColor: 'red',
     width: '100%',
     paddingLeft: 20,
+  },
+  errorMessageContainer: {
+    width: '100%',
+    paddingHorizontal: 30,
+    // backgroundColor: 'green',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginVertical: 10,
+  },
+  errorMessageTextView: {
+    color: 'red',
+    fontSize: 18,
   },
   inputGroupView: {
     // backgroundColor: 'green',
