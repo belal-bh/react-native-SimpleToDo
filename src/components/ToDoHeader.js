@@ -33,7 +33,21 @@ export default ToDoHeader = props => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.toDoTextView}>ToDo</Text>
+      <TouchableOpacity
+        onPress={() => {
+          if (navigation.canGoBack()) navigation.goBack();
+        }}>
+        <Text style={styles.toDoTextView}>
+          {navigation.canGoBack() && (
+            <Image
+              style={styles.goBackIcon}
+              source={require('./../assets/imgs/left-arrow.png')}
+            />
+          )}
+          {/* {navigation.canGoBack() && <Text>{'<--'}</Text>} */}
+          <Text>ToDo</Text>
+        </Text>
+      </TouchableOpacity>
       {user.loggedIn && (
         <View style={styles.rightContainer}>
           <Text style={styles.userNameTextView}>{user.userFullName}</Text>
@@ -69,15 +83,20 @@ const styles = StyleSheet.create({
   userNameTextView: {
     marginRight: 10,
     fontSize: 20,
-    color: 'white',
+    color: '#000',
   },
   toDoTextView: {
     marginRight: 10,
     fontSize: 20,
-    color: 'white',
+    color: '#000',
   },
   logoutImageView: {
     width: 25,
     height: 25,
+  },
+  goBackIcon: {
+    width: 20,
+    height: 15,
+    paddingRight: 5,
   },
 });

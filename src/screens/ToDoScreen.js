@@ -10,6 +10,8 @@ import {
   ActivityIndicator,
 } from 'react-native';
 
+import ToDoHeader from '../components/ToDoHeader';
+import OverlaySpinner from '../components/OverlaySpinner';
 import {API_URL, WAITING_TIME} from '../config';
 import {ToDoListContext} from '../contexts/ToDoListContext';
 import {getToDoObject, getToDoObjectList} from '../helpers/toDoHelpers';
@@ -21,7 +23,7 @@ const Item = ({toDo, index}) => {
   const {toDoList, setToDoList} = useContext(ToDoListContext);
 
   const [isLoading, setLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState('');
 
   const toggleToDoIsCompleted = index => {
     const theToDo = toDoList[index];
@@ -70,10 +72,10 @@ const Item = ({toDo, index}) => {
         }),
       );
       console.log('data:', json);
-      if(errorMessage) setErrorMessage("");
+      if (errorMessage) setErrorMessage('');
     } catch (error) {
       console.log(error);
-      setErrorMessage("Something went wrong.");
+      setErrorMessage('Something went wrong.');
     } finally {
       setLoading(false);
     }
@@ -102,7 +104,9 @@ const Item = ({toDo, index}) => {
           </Text>
         </TouchableOpacity>
         <View style={styles.itemRightSightView}>
-          <Text style={styles.itemDateView}>{dateToString(toDo.createdAt)}</Text>
+          <Text style={styles.itemDateView}>
+            {dateToString(toDo.createdAt)}
+          </Text>
           <TouchableOpacity
             disabled={isLoading}
             style={styles.itemCheckView}
@@ -121,9 +125,11 @@ const Item = ({toDo, index}) => {
           </TouchableOpacity>
         </View>
       </View>
-      {errorMessage && <View style={styles.errorMessageContainer}>
-        <Text style={styles.errorMessageTextView}>{errorMessage}</Text>
-      </View>}
+      {errorMessage && (
+        <View style={styles.errorMessageContainer}>
+          <Text style={styles.errorMessageTextView}>{errorMessage}</Text>
+        </View>
+      )}
     </View>
   );
 };
@@ -133,7 +139,7 @@ export default ToDoScreen = ({navigation}) => {
 
   const [data, setData] = useState([]);
   const [isLoading, setLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState('');
 
   const getToDos = async () => {
     try {
@@ -144,10 +150,10 @@ export default ToDoScreen = ({navigation}) => {
       console.log('data:', json);
 
       setToDoList(getToDoObjectList(json));
-      if(errorMessage) setErrorMessage("");
+      if (errorMessage) setErrorMessage('');
     } catch (error) {
       console.log(error);
-      setErrorMessage("Something went wrong.");
+      setErrorMessage('Something went wrong.');
     } finally {
       setLoading(false);
     }
@@ -164,6 +170,7 @@ export default ToDoScreen = ({navigation}) => {
 
   return (
     <View style={styles.mainContainer}>
+      {isLoading && <OverlaySpinner message="Loading ToDos" />}
       <ToDoHeader />
       <View style={styles.container}>
         <View style={styles.headViewContainer}>
@@ -182,12 +189,12 @@ export default ToDoScreen = ({navigation}) => {
           </TouchableOpacity>
         </View>
         <View style={styles.listViewContainer}>
-          {isLoading && (
+          {/* {isLoading && (
             <View style={styles.loadingView}>
               <ActivityIndicator size="large" />
               <Text>Loading ToDos</Text>
             </View>
-          )}
+          )} */}
           {errorMessage && (
             <View style={styles.loadingView}>
               <Text style={{color: 'red'}}>{errorMessage}</Text>

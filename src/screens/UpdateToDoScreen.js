@@ -31,7 +31,7 @@ export default UpdateToDoScreen = ({navigation, route}) => {
     toDoList[toDoIndex].isCompleted,
   );
   const [isLoading, setLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState('');
 
   const updateToDo = (toDoTitle, toDoDescription = '') => {
     setLoading(true);
@@ -89,14 +89,14 @@ export default UpdateToDoScreen = ({navigation, route}) => {
       );
       console.log('data:', json);
 
-      if(errorMessage) setErrorMessage("");
+      if (errorMessage) setErrorMessage('');
 
       // succesfully updated
       setLoading(false);
       navigation.navigate('Home_to_ToDo');
     } catch (error) {
       console.log(error);
-      setErrorMessage("Something went wrong.");
+      setErrorMessage('Something went wrong.');
     } finally {
       setLoading(false);
     }
@@ -106,21 +106,14 @@ export default UpdateToDoScreen = ({navigation, route}) => {
     <View style={styles.mainContainer}>
       <ToDoHeader />
       <View style={styles.container}>
-        <View style={styles.backButtonContainer}>
-          <TouchableOpacity
-            disabled={isLoading}
-            onPress={() => {
-              navigation.pop();
-            }}>
-            <Text style={styles.backButtonText}>{'<--'} Back</Text>
-          </TouchableOpacity>
-        </View>
         <View style={styles.headViewContainer}>
           <Text style={{fontWeight: 'bold'}}>My ToDo</Text>
         </View>
-        {errorMessage && <View style={styles.errorMessageContainer}>
-          <Text style={styles.errorMessageTextView}>{errorMessage}</Text>
-        </View>}
+        {errorMessage && (
+          <View style={styles.errorMessageContainer}>
+            <Text style={styles.errorMessageTextView}>{errorMessage}</Text>
+          </View>
+        )}
         <ScrollView style={styles.inputViewContainer}>
           <View style={styles.inputGroupView}>
             <Text>
@@ -192,13 +185,6 @@ const styles = StyleSheet.create({
     // textAlign:
     paddingLeft: 5,
     paddingRight: 5,
-  },
-  backButtonContainer: {
-    paddingVertical: 20,
-  },
-  backButtonText: {
-    color: '#00a0db',
-    fontSize: 16,
   },
   headViewContainer: {
     justifyContent: 'flex-start',

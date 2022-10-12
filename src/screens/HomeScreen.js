@@ -12,6 +12,7 @@ import {StackActions} from '@react-navigation/native';
 import {UserContext} from '../contexts/UserContext';
 
 import ToDoHeader from '../components/ToDoHeader';
+import OverlaySpinner from '../components/OverlaySpinner';
 import {API_URL, WAITING_TIME} from '../config';
 import {wait} from '../helpers/helpers';
 
@@ -60,8 +61,9 @@ export default HomeScreen = ({navigation}) => {
 
   return (
     <View style={styles.mainContainer}>
+      {isLoading && <OverlaySpinner color="green" message="Wait a second..." />}
       <ToDoHeader />
-      {!isLoading ? (
+      {!isLoading && (
         <View style={styles.container}>
           <View style={styles.inputContainerView}>
             <TextInput
@@ -90,11 +92,6 @@ export default HomeScreen = ({navigation}) => {
               <Text style={styles.buttonTextView}>Next</Text>
             </TouchableOpacity>
           </View>
-        </View>
-      ) : (
-        <View style={styles.container}>
-          <ActivityIndicator size="large" />
-          <Text>Wait a second...</Text>
         </View>
       )}
     </View>
