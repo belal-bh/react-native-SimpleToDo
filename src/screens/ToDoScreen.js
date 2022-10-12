@@ -91,8 +91,8 @@ const Item = ({toDo, index}) => {
             style={{
               textDecorationLine: toDo.isCompleted ? 'line-through' : 'none',
             }}>
-            {toDo.toDoTitle.length > 19
-              ? toDo.toDoTitle.slice(0, 19) + '...'
+            {toDo.toDoTitle.length > 22
+              ? toDo.toDoTitle.slice(0, 22) + '...'
               : toDo.toDoTitle}
           </Text>
         </Text>
