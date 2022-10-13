@@ -11,12 +11,14 @@ import {
 
 import ToDoHeader from '../components/ToDoHeader';
 import {ToDoListContext} from '../contexts/ToDoListContext';
+import { UserContext } from '../contexts/UserContext';
 import {getToDoObject} from '../helpers/toDoHelpers';
 import {wait} from '../helpers/helpers';
 import {API_URL, WAITING_TIME} from '../config';
 
 export default CreateToDoScreen = ({navigation}) => {
   const {toDoList, setToDoList} = useContext(ToDoListContext);
+  const {user} = useContext(UserContext);
 
   const [toDoTitle, setToDoTitle] = useState('');
   const [toDoDescription, setToDoDescription] = useState('');
@@ -61,6 +63,7 @@ export default CreateToDoScreen = ({navigation}) => {
         body: data,
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
+          'Userid': user.userFullName,
         },
       });
       const json = await response.json();

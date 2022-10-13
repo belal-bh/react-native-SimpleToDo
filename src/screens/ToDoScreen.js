@@ -14,6 +14,7 @@ import ToDoHeader from '../components/ToDoHeader';
 import OverlaySpinner from '../components/OverlaySpinner';
 import {API_URL, WAITING_TIME} from '../config';
 import {ToDoListContext} from '../contexts/ToDoListContext';
+import { UserContext } from '../contexts/UserContext';
 import {getToDoObject, getToDoObjectList} from '../helpers/toDoHelpers';
 import {wait, dateToString} from '../helpers/helpers';
 
@@ -21,6 +22,7 @@ const Item = ({toDo, index}) => {
   const navigation = useNavigation();
   // console.log('toDo:', toDo);
   const {toDoList, setToDoList} = useContext(ToDoListContext);
+  const {user} = useContext(UserContext);
 
   const [isLoading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -61,6 +63,7 @@ const Item = ({toDo, index}) => {
         body: data,
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
+          'Userid': user.userFullName,
         },
       });
       const json = await response.json();
@@ -136,6 +139,7 @@ const Item = ({toDo, index}) => {
 
 export default ToDoScreen = ({navigation}) => {
   const {toDoList, setToDoList} = useContext(ToDoListContext);
+  const {user} = useContext(UserContext);
 
   const [data, setData] = useState([]);
   const [isLoading, setLoading] = useState(true);
@@ -144,7 +148,12 @@ export default ToDoScreen = ({navigation}) => {
   const getToDos = async () => {
     try {
       await wait(WAITING_TIME);
-      const response = await fetch(`${API_URL}tasks/`);
+      const response = await fetch(`${API_URL}tasks/`, {
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+          'Userid': user.userFullName,
+        },
+      });
       const json = await response.json();
       setData(json);
       console.log('data:', json);
