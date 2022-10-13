@@ -84,7 +84,7 @@ export default UpdateToDoScreen = ({navigation, route}) => {
   const updateRemoteToDo = async (id, data) => {
     try {
       await wait(WAITING_TIME);
-      const response = await fetch(`${API_URL}todos/${id}/`, {
+      const response = await fetch(`${API_URL}tasks/${id}/`, {
         method: 'PATCH',
         body: data,
         headers: {
@@ -117,7 +117,7 @@ export default UpdateToDoScreen = ({navigation, route}) => {
   const deleteRemoteToDo = async id => {
     try {
       await wait(WAITING_TIME);
-      const response = await fetch(`${API_URL}todos/${id}/`, {
+      const response = await fetch(`${API_URL}tasks/${id}/`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',

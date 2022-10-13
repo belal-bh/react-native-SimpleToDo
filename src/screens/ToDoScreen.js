@@ -56,7 +56,7 @@ const Item = ({toDo, index}) => {
     try {
       console.log(`id=${id}`);
       await wait(WAITING_TIME);
-      const response = await fetch(`${API_URL}todos/${id}/`, {
+      const response = await fetch(`${API_URL}tasks/${id}/`, {
         method: 'PATCH',
         body: data,
         headers: {
@@ -144,7 +144,7 @@ export default ToDoScreen = ({navigation}) => {
   const getToDos = async () => {
     try {
       await wait(WAITING_TIME);
-      const response = await fetch(`${API_URL}todos/`);
+      const response = await fetch(`${API_URL}tasks/`);
       const json = await response.json();
       setData(json);
       console.log('data:', json);

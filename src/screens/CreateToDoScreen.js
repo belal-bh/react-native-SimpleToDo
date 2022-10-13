@@ -56,7 +56,7 @@ export default CreateToDoScreen = ({navigation}) => {
   const uploadToDo = async data => {
     try {
       await wait(WAITING_TIME);
-      const response = await fetch(`${API_URL}todos/`, {
+      const response = await fetch(`${API_URL}tasks/`, {
         method: 'POST',
         body: data,
         headers: {
