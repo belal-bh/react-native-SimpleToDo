@@ -14,7 +14,7 @@ import ToDoHeader from '../components/ToDoHeader';
 import {ToDoListContext} from '../contexts/ToDoListContext';
 import { UserContext } from '../contexts/UserContext';
 import {getToDoObject} from '../helpers/toDoHelpers';
-import {wait} from '../helpers/helpers';
+import {wait, resetToScreen} from '../helpers/helpers';
 import {API_URL, WAITING_TIME} from '../config';
 
 export default UpdateToDoScreen = ({navigation, route}) => {
@@ -95,19 +95,20 @@ export default UpdateToDoScreen = ({navigation, route}) => {
       });
       const json = await response.json();
       const resToDo = getToDoObject(json);
-      setToDoList(
-        toDoList.map(toDoItem => {
-          if (toDoItem.id === resToDo.id) return resToDo;
-          return toDoItem;
-        }),
-      );
+      // setToDoList(
+      //   toDoList.map(toDoItem => {
+      //     if (toDoItem.id === resToDo.id) return resToDo;
+      //     return toDoItem;
+      //   }),
+      // );
       console.log('data:', json);
 
       if (errorMessage) setErrorMessage('');
 
       // succesfully updated
       setLoading(false);
-      navigation.navigate('Home_to_ToDo');
+      // navigation.navigate('Home_to_ToDo');
+      resetToScreen(navigation, 'Home_to_ToDo');
     } catch (error) {
       console.log(error);
       setErrorMessage('Something went wrong.');
@@ -130,19 +131,20 @@ export default UpdateToDoScreen = ({navigation, route}) => {
       // const json = await response.json();
       // console.log(json);
       // later
-      setToDoList(
-        toDoList.filter(toDoItem => {
-          if (toDoItem.id === id) return false;
-          return true;
-        }),
-      );
+      // setToDoList(
+      //   toDoList.filter(toDoItem => {
+      //     if (toDoItem.id === id) return false;
+      //     return true;
+      //   }),
+      // );
       // console.log('data:', json);
 
       if (errorMessage) setErrorMessage('');
 
       // succesfully deleted
       setDeleting(false);
-      navigation.navigate('Home_to_ToDo');
+      // navigation.navigate('Home_to_ToDo');
+      resetToScreen(navigation, 'Home_to_ToDo');
     } catch (error) {
       console.log(error);
       setErrorMessage('Something went wrong.');

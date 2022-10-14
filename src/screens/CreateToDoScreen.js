@@ -13,7 +13,7 @@ import ToDoHeader from '../components/ToDoHeader';
 import {ToDoListContext} from '../contexts/ToDoListContext';
 import { UserContext } from '../contexts/UserContext';
 import {getToDoObject} from '../helpers/toDoHelpers';
-import {wait} from '../helpers/helpers';
+import {wait, resetToScreen} from '../helpers/helpers';
 import {API_URL, WAITING_TIME} from '../config';
 
 export default CreateToDoScreen = ({navigation}) => {
@@ -68,13 +68,14 @@ export default CreateToDoScreen = ({navigation}) => {
       });
       const json = await response.json();
       const newToDo = getToDoObject(json);
-      setToDoList([...toDoList, {...newToDo}]);
+      // setToDoList([...toDoList, {...newToDo}]);
       console.log('data:', json);
       if (errorMessage) setErrorMessage('');
 
       // succesfully created
       setLoading(false);
-      navigation.navigate('Home_to_ToDo');
+      // navigation.navigate('Home_to_ToDo');
+      resetToScreen(navigation, 'Home_to_ToDo');
     } catch (error) {
       console.log(error);
       setErrorMessage('Something went wrong.');

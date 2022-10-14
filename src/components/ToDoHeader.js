@@ -5,6 +5,7 @@ import {View, Text, Image, StyleSheet, TouchableOpacity} from 'react-native';
 
 import {UserContext} from '../contexts/UserContext';
 import {ToDoListContext} from '../contexts/ToDoListContext';
+import { resetToScreen } from '../helpers/helpers';
 
 export default ToDoHeader = props => {
   const navigation = useNavigation();
@@ -23,12 +24,13 @@ export default ToDoHeader = props => {
     setToDoList([]);
 
     // reset navigation
-    navigation.dispatch(
-      CommonActions.reset({
-        index: 0,
-        routes: [{name: 'App_to_Home'}],
-      }),
-    );
+    // navigation.dispatch(
+    //   CommonActions.reset({
+    //     index: 0,
+    //     routes: [{name: 'App_to_Home'}],
+    //   }),
+    // );
+    resetToScreen(navigation, 'App_to_Home');
   };
 
   return (

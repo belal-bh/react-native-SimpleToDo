@@ -1,5 +1,5 @@
 import React, {useState, useContext, useEffect} from 'react';
-import {useNavigation} from '@react-navigation/native';
+import {useNavigation, useFocusEffect} from '@react-navigation/native';
 import {
   View,
   Text,
@@ -137,11 +137,11 @@ const Item = ({toDo, index}) => {
   );
 };
 
-export default ToDoScreen = ({navigation}) => {
+export default ToDoScreen = ({navigation, route}) => {
   const {toDoList, setToDoList} = useContext(ToDoListContext);
   const {user} = useContext(UserContext);
 
-  const [data, setData] = useState([]);
+  // const [data, setData] = useState([]);
   const [isLoading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -155,8 +155,8 @@ export default ToDoScreen = ({navigation}) => {
         },
       });
       const json = await response.json();
-      setData(json);
-      console.log('data:', json);
+      // setData(json);
+      // console.log('data:', json);
 
       setToDoList(getToDoObjectList(json));
       if (errorMessage) setErrorMessage('');
@@ -170,7 +170,17 @@ export default ToDoScreen = ({navigation}) => {
 
   useEffect(() => {
     getToDos();
+    console.log("Called getToDos.");
   }, []);
+
+  // useFocusEffect(React.useCallback(()=> {
+  //   getToDos();
+  //   console.log("Moved to ToDoScreen.");
+  // }, [toDoList]))
+  // useEffect(() => {
+
+  // }, [navigation?.route])
+  // console.log('---------->',route);
 
   const renderItem = ({item, index}) => {
     // console.log('index', index);
@@ -213,7 +223,7 @@ export default ToDoScreen = ({navigation}) => {
             <FlatList
               data={toDoList}
               renderItem={props => renderItem(props)}
-              keyExtractor={(item, index) => index}
+              keyExtractor={(item, index) => item.id}
             />
           )}
         </View>

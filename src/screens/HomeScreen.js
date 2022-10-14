@@ -7,14 +7,14 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
-import {StackActions} from '@react-navigation/native';
+import {StackActions, CommonActions} from '@react-navigation/native';
 
 import {UserContext} from '../contexts/UserContext';
 
 import ToDoHeader from '../components/ToDoHeader';
 import OverlaySpinner from '../components/OverlaySpinner';
 import {API_URL, WAITING_TIME} from '../config';
-import {wait} from '../helpers/helpers';
+import {wait, resetToScreen} from '../helpers/helpers';
 import { getUserObject } from '../helpers/userHelpers';
 
 export default HomeScreen = ({navigation}) => {
@@ -57,7 +57,7 @@ export default HomeScreen = ({navigation}) => {
       });
       const json = await response.json();
       const newUser = getUserObject(json);
-      
+
       console.log('new-user:', newUser);
 
       setUser({
@@ -71,7 +71,8 @@ export default HomeScreen = ({navigation}) => {
     } finally {
       setLoading(false);
       console.log(`Hi ${userName}!`);
-      navigation.dispatch(StackActions.replace('Home_to_ToDo'));
+      // navigation.dispatch(StackActions.replace('Home_to_ToDo'));
+      resetToScreen(navigation, 'Home_to_ToDo');
     }
   };
 

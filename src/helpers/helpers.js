@@ -1,3 +1,5 @@
+import {CommonActions} from '@react-navigation/native';
+
 export const wait = seconds => {
   return new Promise(resolve => setTimeout(resolve, seconds * 1000));
 };
@@ -14,4 +16,15 @@ export const dateToString = date => {
     console.log('💥💥💥 ERROR: ', err);
     return '';
   }
+};
+
+export const resetToScreen = (navigation, screenName) => {
+  navigation.dispatch(
+    CommonActions.reset({
+      index: 0,
+      routes: [
+        { name: screenName },
+      ],
+    })
+  );
 };
