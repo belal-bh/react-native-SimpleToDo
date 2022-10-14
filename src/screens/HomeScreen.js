@@ -15,6 +15,7 @@ import ToDoHeader from '../components/ToDoHeader';
 import OverlaySpinner from '../components/OverlaySpinner';
 import {API_URL, WAITING_TIME} from '../config';
 import {wait} from '../helpers/helpers';
+import { getUserObject } from '../helpers/userHelpers';
 
 export default HomeScreen = ({navigation}) => {
   const {user, setUser} = useContext(UserContext);
@@ -22,6 +23,7 @@ export default HomeScreen = ({navigation}) => {
   const [userName, setUserName] = useState(user.userFullName);
   const [validationMessage, setValidationMessage] = useState('');
   const [isLoading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const handleSubmit = () => {
     setUserName(userName.trim());
@@ -44,14 +46,28 @@ export default HomeScreen = ({navigation}) => {
     try {
       console.log('Logging in ', userName);
       await wait(WAITING_TIME);
+      const response = await fetch(`${API_URL}login/`, {
+        method: 'POST',
+        body: JSON.stringify({
+          'username': userName
+        }),
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+      });
+      const json = await response.json();
+      const newUser = getUserObject(json);
+      
+      console.log('new-user:', newUser);
 
       setUser({
-        ...user,
-        userFullName: userName,
+        ...newUser,
         loggedIn: true,
       });
+      setLoading(false);
     } catch (error) {
-      console.error(error);
+      console.log(error);
+      setErrorMessage('Something went wrong.');
     } finally {
       setLoading(false);
       console.log(`Hi ${userName}!`);
@@ -65,6 +81,11 @@ export default HomeScreen = ({navigation}) => {
       <ToDoHeader />
       {!isLoading && (
         <View style={styles.container}>
+          {errorMessage && (
+            <View style={styles.errorMessageContainer}>
+              <Text style={styles.errorMessageTextView}>{errorMessage}</Text>
+            </View>
+          )}
           <View style={styles.inputContainerView}>
             <TextInput
               style={styles.textInputView}
@@ -148,5 +169,17 @@ const styles = StyleSheet.create({
     // backgroundColor: 'green',
     paddingHorizontal: 10,
     color: 'red',
+  },
+  errorMessageContainer: {
+    width: '100%',
+    paddingHorizontal: 30,
+    // backgroundColor: 'green',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginVertical: 10,
+  },
+  errorMessageTextView: {
+    color: 'red',
+    fontSize: 18,
   },
 });

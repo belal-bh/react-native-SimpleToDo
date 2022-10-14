@@ -63,7 +63,7 @@ export default CreateToDoScreen = ({navigation}) => {
         body: data,
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
-          'Userid': user.userFullName,
+          'Userid': user.id,
         },
       });
       const json = await response.json();

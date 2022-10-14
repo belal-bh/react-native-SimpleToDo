@@ -90,7 +90,7 @@ export default UpdateToDoScreen = ({navigation, route}) => {
         body: data,
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
-          'Userid': user.userFullName,
+          'Userid': user.id,
         },
       });
       const json = await response.json();
@@ -123,7 +123,7 @@ export default UpdateToDoScreen = ({navigation, route}) => {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
-          'Userid': user.userFullName,
+          'Userid': user.id,
         },
       });
       console.log(response);

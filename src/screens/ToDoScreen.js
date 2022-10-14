@@ -63,7 +63,7 @@ const Item = ({toDo, index}) => {
         body: data,
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
-          'Userid': user.userFullName,
+          'Userid': user.id,
         },
       });
       const json = await response.json();
@@ -151,7 +151,7 @@ export default ToDoScreen = ({navigation}) => {
       const response = await fetch(`${API_URL}tasks/`, {
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
-          'Userid': user.userFullName,
+          'Userid': user.id,
         },
       });
       const json = await response.json();
