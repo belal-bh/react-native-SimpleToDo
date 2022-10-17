@@ -8,44 +8,47 @@ import CreateToDoScreen from './src/screens/CreateToDoScreen';
 import UpdateToDoScreen from './src/screens/UpdateToDoScreen';
 
 import {CommonContextProvider} from './src/contexts/CommonContext';
+import {UtilContextProvider} from './src/contexts/UtilContext';
 
 const Stack = createNativeStackNavigator();
 
 export default App = () => {
   return (
     <CommonContextProvider>
-      <NavigationContainer>
-        <Stack.Navigator initialRouteName="App_to_Home">
-          <Stack.Screen
-            name="App_to_Home"
-            component={HomeScreen}
-            options={{
-              headerShown: false,
-            }}
-          />
-          <Stack.Screen
-            name="Home_to_ToDo"
-            component={ToDoScreen}
-            options={{
-              headerShown: false,
-            }}
-          />
-          <Stack.Screen
-            name="ToDo_to_CreateToDo"
-            component={CreateToDoScreen}
-            options={{
-              headerShown: false,
-            }}
-          />
-          <Stack.Screen
-            name="ToDo_to_UpdateToDo"
-            component={UpdateToDoScreen}
-            options={{
-              headerShown: false,
-            }}
-          />
-        </Stack.Navigator>
-      </NavigationContainer>
+      <UtilContextProvider>
+        <NavigationContainer>
+          <Stack.Navigator initialRouteName="App_to_Home">
+            <Stack.Screen
+              name="App_to_Home"
+              component={HomeScreen}
+              options={{
+                headerShown: false,
+              }}
+            />
+            <Stack.Screen
+              name="Home_to_ToDo"
+              component={ToDoScreen}
+              options={{
+                headerShown: false,
+              }}
+            />
+            <Stack.Screen
+              name="ToDo_to_CreateToDo"
+              component={CreateToDoScreen}
+              options={{
+                headerShown: false,
+              }}
+            />
+            <Stack.Screen
+              name="ToDo_to_UpdateToDo"
+              component={UpdateToDoScreen}
+              options={{
+                headerShown: false,
+              }}
+            />
+          </Stack.Navigator>
+        </NavigationContainer>
+      </UtilContextProvider>
     </CommonContextProvider>
   );
 };

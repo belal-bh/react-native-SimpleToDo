@@ -8,15 +8,15 @@ import {
 } from 'react-native';
 
 import CommonContext from '../contexts/CommonContext';
+import UtilContext from '../contexts/UtilContext';
 
 import ToDoHeader from '../components/ToDoHeader';
 import OverlaySpinner from '../components/OverlaySpinner';
-import {API_URL, WAITING_TIME} from '../config';
-import {wait, resetToScreen} from '../helpers/helpers';
-import {getUserObject} from '../helpers/userHelpers';
+import {resetToScreen} from '../helpers/helpers';
 
 export default HomeScreen = ({navigation}) => {
-  const {user, setUser} = useContext(CommonContext);
+  const {user} = useContext(CommonContext);
+  const {login} = useContext(UtilContext);
 
   const [userName, setUserName] = useState(user.userFullName);
   const [validationMessage, setValidationMessage] = useState('');
@@ -29,48 +29,23 @@ export default HomeScreen = ({navigation}) => {
       setValidationMessage('Name is required.');
       return;
     }
-
     setValidationMessage('');
-
-    console.log('User:', user);
 
     setLoading(true);
     loginUser(userName);
-
-    console.log(`UserName: ${userName}`);
   };
 
   const loginUser = async userName => {
     try {
-      console.log('Logging in ', userName);
-      await wait(WAITING_TIME);
-      const response = await fetch(`${API_URL}login/`, {
-        method: 'POST',
-        body: JSON.stringify({
-          username: userName,
-        }),
-        headers: {
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
-      });
-      const json = await response.json();
-      const newUser = getUserObject(json);
-
-      console.log('new-user:', newUser);
-
-      setUser({
-        ...newUser,
-        loggedIn: true,
-      });
+      await login(userName);
       setLoading(false);
+      resetToScreen(navigation, 'Home_to_ToDo');
     } catch (error) {
       console.log(error);
       setErrorMessage('Something went wrong.');
     } finally {
       setLoading(false);
       console.log(`Hi ${userName}!`);
-      // navigation.dispatch(StackActions.replace('Home_to_ToDo'));
-      resetToScreen(navigation, 'Home_to_ToDo');
     }
   };
 
@@ -94,7 +69,6 @@ export default HomeScreen = ({navigation}) => {
               onChangeText={text => {
                 text = text.slice(0, 18);
                 setUserName(text);
-                // console.log(text);
                 if (text && validationMessage) setValidationMessage('');
               }}
             />
@@ -108,7 +82,7 @@ export default HomeScreen = ({navigation}) => {
             <TouchableOpacity
               disabled={isLoading}
               style={styles.buttonViewContainer}
-              onPress={() => handleSubmit()}>
+              onPress={handleSubmit}>
               <Text style={styles.buttonTextView}>Next</Text>
             </TouchableOpacity>
           </View>
