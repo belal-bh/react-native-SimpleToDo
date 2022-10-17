@@ -1,4 +1,4 @@
-import React, {useState, useContext, useEffect} from 'react';
+import React, {useState, useContext} from 'react';
 import {
   View,
   Text,
@@ -10,30 +10,17 @@ import {
 } from 'react-native';
 
 import ToDoHeader from '../components/ToDoHeader';
-import CommonContext from '../contexts/CommonContext';
-import {getToDoObject} from '../helpers/toDoHelpers';
-import {wait, resetToScreen} from '../helpers/helpers';
-import {API_URL, WAITING_TIME} from '../config';
+import UtilContext from '../contexts/UtilContext';
+import {resetToScreen} from '../helpers/helpers';
 
 export default CreateToDoScreen = ({navigation}) => {
-  const {user} = useContext(CommonContext);
+  const {createToDo} = useContext(UtilContext);
 
   const [toDoTitle, setToDoTitle] = useState('');
   const [toDoDescription, setToDoDescription] = useState('');
   const [validationMessage, setValidationMessage] = useState('');
   const [isLoading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-
-  const createToDo = (toDoTitle, toDoDescription = '') => {
-    setLoading(true);
-
-    uploadToDo(
-      JSON.stringify({
-        title: toDoTitle,
-        description: toDoDescription,
-      }),
-    );
-  };
 
   const handleSubmit = () => {
     setToDoTitle(toDoTitle.trim());
@@ -43,34 +30,24 @@ export default CreateToDoScreen = ({navigation}) => {
       setValidationMessage('ToDo title is required.');
       return;
     }
-
     setValidationMessage('');
-
     console.log('Todo data:', toDoTitle, toDoDescription);
-    createToDo(toDoTitle, toDoDescription);
-    // console.log("Todo created:", toDo);
+
+    setLoading(true);
+    uploadToDo(
+      JSON.stringify({
+        title: toDoTitle,
+        description: toDoDescription,
+      }),
+    );
   };
 
   const uploadToDo = async data => {
     try {
-      await wait(WAITING_TIME);
-      const response = await fetch(`${API_URL}tasks/`, {
-        method: 'POST',
-        body: data,
-        headers: {
-          'Content-Type': 'application/json; charset=UTF-8',
-          Userid: user.id,
-        },
-      });
-      const json = await response.json();
-      const newToDo = getToDoObject(json);
-      // setToDoList([...toDoList, {...newToDo}]);
-      console.log('data:', json);
+      await createToDo(data);
       if (errorMessage) setErrorMessage('');
 
-      // succesfully created
       setLoading(false);
-      // navigation.navigate('Home_to_ToDo');
       resetToScreen(navigation, 'Home_to_ToDo');
     } catch (error) {
       console.log(error);
@@ -125,7 +102,7 @@ export default CreateToDoScreen = ({navigation}) => {
             <TouchableOpacity
               disabled={isLoading}
               style={styles.submitButtonView}
-              onPress={() => handleSubmit()}>
+              onPress={handleSubmit}>
               <Text style={styles.submitButtonTextView}>
                 {isLoading ? (
                   <Text>

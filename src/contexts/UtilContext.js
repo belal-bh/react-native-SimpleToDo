@@ -53,6 +53,27 @@ export function UtilContextProvider({children}) {
       setToDoList(getToDoObjectList(json));
     } catch (error) {
       console.log(`ERROR at getToDos: ${error}`);
+      throw error;
+    }
+  };
+
+  const createToDo = async data => {
+    try {
+      await wait(WAITING_TIME);
+      const response = await fetch(`${API_URL}tasks/`, {
+        method: 'POST',
+        body: data,
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+          Userid: user.id,
+        },
+      });
+      const json = await response.json();
+      const newToDo = getToDoObject(json);
+      console.log('data:', json);
+    } catch (error) {
+      console.log(`ERROR at createToDo: ${error}`);
+      throw error;
     }
   };
 
@@ -88,6 +109,7 @@ export function UtilContextProvider({children}) {
       value={{
         login,
         getToDos,
+        createToDo,
         updateToDo,
       }}>
       {children}
