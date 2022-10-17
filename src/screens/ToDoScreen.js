@@ -12,33 +12,28 @@ import {
 
 import ToDoHeader from '../components/ToDoHeader';
 import OverlaySpinner from '../components/OverlaySpinner';
-import {API_URL, WAITING_TIME} from '../config';
 import CommonContext from '../contexts/CommonContext';
-import {getToDoObject, getToDoObjectList} from '../helpers/toDoHelpers';
-import {wait, dateToString} from '../helpers/helpers';
+import UtilContext from '../contexts/UtilContext';
+import {dateToString} from '../helpers/helpers';
 
 const Item = ({toDo, index}) => {
   const navigation = useNavigation();
-  // console.log('toDo:', toDo);
-  const {user, toDoList, setToDoList} = useContext(CommonContext);
+  const {toDoList} = useContext(CommonContext);
+  const {updateToDo} = useContext(UtilContext);
 
   const [isLoading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
-  const toggleToDoIsCompleted = index => {
-    const theToDo = toDoList[index];
+  const handleClickToDoCompletion = () => {
+    setLoading(true);
 
+    const theToDo = toDoList[index];
     updateRemoteToDo(
       theToDo.id,
       JSON.stringify({
         is_completed: !theToDo.isCompleted,
       }),
     );
-  };
-
-  const handleClickToDoCompletion = () => {
-    setLoading(true);
-    toggleToDoIsCompleted(index);
   };
 
   const handleClickUpdateToDo = () => {
@@ -48,25 +43,7 @@ const Item = ({toDo, index}) => {
 
   const updateRemoteToDo = async (id, data) => {
     try {
-      console.log(`id=${id}`);
-      await wait(WAITING_TIME);
-      const response = await fetch(`${API_URL}tasks/${id}/`, {
-        method: 'PATCH',
-        body: data,
-        headers: {
-          'Content-Type': 'application/json; charset=UTF-8',
-          Userid: user.id,
-        },
-      });
-      const json = await response.json();
-      const resToDo = getToDoObject(json);
-      setToDoList(
-        toDoList.map(toDoItem => {
-          if (toDoItem.id === resToDo.id) return resToDo;
-          return toDoItem;
-        }),
-      );
-      console.log('data:', json);
+      await updateToDo(id, data);
       if (errorMessage) setErrorMessage('');
     } catch (error) {
       console.log(error);
@@ -130,51 +107,28 @@ const Item = ({toDo, index}) => {
 };
 
 export default ToDoScreen = ({navigation, route}) => {
-  const {user, toDoList, setToDoList} = useContext(CommonContext);
+  const {toDoList} = useContext(CommonContext);
+  const {getToDos} = useContext(UtilContext);
 
-  // const [data, setData] = useState([]);
   const [isLoading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
 
-  const getToDos = async () => {
-    try {
-      await wait(WAITING_TIME);
-      const response = await fetch(`${API_URL}tasks/`, {
-        headers: {
-          'Content-Type': 'application/json; charset=UTF-8',
-          Userid: user.id,
-        },
-      });
-      const json = await response.json();
-      // setData(json);
-      // console.log('data:', json);
-
-      setToDoList(getToDoObjectList(json));
-      if (errorMessage) setErrorMessage('');
-    } catch (error) {
-      console.log(error);
-      setErrorMessage('Something went wrong.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    getToDos();
-    console.log('Called getToDos.');
+    const getAllToDos = async () => {
+      try {
+        await getToDos();
+        if (errorMessage) setErrorMessage('');
+      } catch (error) {
+        console.log(error);
+        setErrorMessage('Something went wrong.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    getAllToDos();
   }, []);
 
-  // useFocusEffect(React.useCallback(()=> {
-  //   getToDos();
-  //   console.log("Moved to ToDoScreen.");
-  // }, [toDoList]))
-  // useEffect(() => {
-
-  // }, [navigation?.route])
-  // console.log('---------->',route);
-
   const renderItem = ({item, index}) => {
-    // console.log('index', index);
     return <Item toDo={item} index={index} />;
   };
 
@@ -199,12 +153,6 @@ export default ToDoScreen = ({navigation, route}) => {
           </TouchableOpacity>
         </View>
         <View style={styles.listViewContainer}>
-          {/* {isLoading && (
-            <View style={styles.loadingView}>
-              <ActivityIndicator size="large" />
-              <Text>Loading ToDos</Text>
-            </View>
-          )} */}
           {errorMessage && (
             <View style={styles.loadingView}>
               <Text style={{color: 'red'}}>{errorMessage}</Text>
