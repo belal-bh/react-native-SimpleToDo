@@ -11,15 +11,13 @@ import {
 } from 'react-native';
 
 import ToDoHeader from '../components/ToDoHeader';
-import {ToDoListContext} from '../contexts/ToDoListContext';
-import { UserContext } from '../contexts/UserContext';
+import CommonContext from '../contexts/CommonContext';
 import {getToDoObject} from '../helpers/toDoHelpers';
 import {wait, resetToScreen} from '../helpers/helpers';
 import {API_URL, WAITING_TIME} from '../config';
 
 export default UpdateToDoScreen = ({navigation, route}) => {
-  const {toDoList, setToDoList} = useContext(ToDoListContext);
-  const {user} = useContext(UserContext);
+  const {user, toDoList} = useContext(CommonContext);
   const toDoIndex = route.params.toDoIndex;
 
   // console.log('toDoList:', toDoList);
@@ -90,7 +88,7 @@ export default UpdateToDoScreen = ({navigation, route}) => {
         body: data,
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
-          'Userid': user.id,
+          Userid: user.id,
         },
       });
       const json = await response.json();
@@ -124,7 +122,7 @@ export default UpdateToDoScreen = ({navigation, route}) => {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
-          'Userid': user.id,
+          Userid: user.id,
         },
       });
       console.log(response);

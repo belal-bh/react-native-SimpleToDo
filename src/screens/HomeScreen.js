@@ -5,20 +5,18 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  ActivityIndicator,
 } from 'react-native';
-import {StackActions, CommonActions} from '@react-navigation/native';
 
-import {UserContext} from '../contexts/UserContext';
+import CommonContext from '../contexts/CommonContext';
 
 import ToDoHeader from '../components/ToDoHeader';
 import OverlaySpinner from '../components/OverlaySpinner';
 import {API_URL, WAITING_TIME} from '../config';
 import {wait, resetToScreen} from '../helpers/helpers';
-import { getUserObject } from '../helpers/userHelpers';
+import {getUserObject} from '../helpers/userHelpers';
 
 export default HomeScreen = ({navigation}) => {
-  const {user, setUser} = useContext(UserContext);
+  const {user, setUser} = useContext(CommonContext);
 
   const [userName, setUserName] = useState(user.userFullName);
   const [validationMessage, setValidationMessage] = useState('');
@@ -49,7 +47,7 @@ export default HomeScreen = ({navigation}) => {
       const response = await fetch(`${API_URL}login/`, {
         method: 'POST',
         body: JSON.stringify({
-          'username': userName
+          username: userName,
         }),
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',

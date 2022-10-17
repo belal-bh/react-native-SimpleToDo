@@ -1,5 +1,5 @@
 import React, {useState, useContext, useEffect} from 'react';
-import {useNavigation, useFocusEffect} from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
 import {
   View,
   Text,
@@ -13,23 +13,20 @@ import {
 import ToDoHeader from '../components/ToDoHeader';
 import OverlaySpinner from '../components/OverlaySpinner';
 import {API_URL, WAITING_TIME} from '../config';
-import {ToDoListContext} from '../contexts/ToDoListContext';
-import { UserContext } from '../contexts/UserContext';
+import CommonContext from '../contexts/CommonContext';
 import {getToDoObject, getToDoObjectList} from '../helpers/toDoHelpers';
 import {wait, dateToString} from '../helpers/helpers';
 
 const Item = ({toDo, index}) => {
   const navigation = useNavigation();
   // console.log('toDo:', toDo);
-  const {toDoList, setToDoList} = useContext(ToDoListContext);
-  const {user} = useContext(UserContext);
+  const {user, toDoList, setToDoList} = useContext(CommonContext);
 
   const [isLoading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
   const toggleToDoIsCompleted = index => {
     const theToDo = toDoList[index];
-    // theToDo.isCompleted = !theToDo.isCompleted;
 
     updateRemoteToDo(
       theToDo.id,
@@ -37,11 +34,6 @@ const Item = ({toDo, index}) => {
         is_completed: !theToDo.isCompleted,
       }),
     );
-
-    // toDoList[index] = theToDo;
-    // setToDoList([...toDoList]);
-
-    // console.log('toDoList:', toDoList);
   };
 
   const handleClickToDoCompletion = () => {
@@ -63,7 +55,7 @@ const Item = ({toDo, index}) => {
         body: data,
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
-          'Userid': user.id,
+          Userid: user.id,
         },
       });
       const json = await response.json();
@@ -138,8 +130,7 @@ const Item = ({toDo, index}) => {
 };
 
 export default ToDoScreen = ({navigation, route}) => {
-  const {toDoList, setToDoList} = useContext(ToDoListContext);
-  const {user} = useContext(UserContext);
+  const {user, toDoList, setToDoList} = useContext(CommonContext);
 
   // const [data, setData] = useState([]);
   const [isLoading, setLoading] = useState(true);
@@ -151,7 +142,7 @@ export default ToDoScreen = ({navigation, route}) => {
       const response = await fetch(`${API_URL}tasks/`, {
         headers: {
           'Content-Type': 'application/json; charset=UTF-8',
-          'Userid': user.id,
+          Userid: user.id,
         },
       });
       const json = await response.json();
@@ -170,7 +161,7 @@ export default ToDoScreen = ({navigation, route}) => {
 
   useEffect(() => {
     getToDos();
-    console.log("Called getToDos.");
+    console.log('Called getToDos.');
   }, []);
 
   // useFocusEffect(React.useCallback(()=> {
