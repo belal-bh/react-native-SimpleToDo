@@ -12,15 +12,13 @@ import {
 
 import ToDoHeader from '../components/ToDoHeader';
 import CommonContext from '../contexts/CommonContext';
-import {getToDoObject} from '../helpers/toDoHelpers';
-import {wait, resetToScreen} from '../helpers/helpers';
-import {API_URL, WAITING_TIME} from '../config';
+import UtilContext from '../contexts/UtilContext';
+import {resetToScreen} from '../helpers/helpers';
 
 export default UpdateToDoScreen = ({navigation, route}) => {
-  const {user, toDoList} = useContext(CommonContext);
+  const {toDoList} = useContext(CommonContext);
+  const {updateToDo, deleteToDo} = useContext(UtilContext);
   const toDoIndex = route.params.toDoIndex;
-
-  // console.log('toDoList:', toDoList);
 
   const [toDoTitle, setToDoTitle] = useState(toDoList[toDoIndex]?.toDoTitle);
   const [toDoDescription, setToDoDescription] = useState(
@@ -34,7 +32,17 @@ export default UpdateToDoScreen = ({navigation, route}) => {
   const [isDeleting, setDeleting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
-  const updateToDo = (toDoTitle, toDoDescription = '') => {
+  const handleSubmit = () => {
+    setToDoTitle(toDoTitle.trim());
+    setToDoDescription(toDoDescription.trim());
+
+    if (!toDoTitle) {
+      setValidationMessage('ToDo title is required!');
+      return;
+    }
+    setValidationMessage('');
+
+    console.log('Todo data:', toDoTitle, toDoDescription);
     setLoading(true);
 
     const theToDo = {
@@ -42,8 +50,6 @@ export default UpdateToDoScreen = ({navigation, route}) => {
       toDoTitle,
       toDoDescription,
     };
-    // toDoList[toDoIndex] = theToDo;
-    // setToDoList([...toDoList]);
 
     updateRemoteToDo(
       theToDo.id,
@@ -54,58 +60,17 @@ export default UpdateToDoScreen = ({navigation, route}) => {
     );
   };
 
-  const deleteToDo = () => {
+  const handleSubmitDeleteToDo = () => {
     setDeleting(true);
     const theToDo = toDoList[toDoIndex];
     deleteRemoteToDo(theToDo.id);
   };
 
-  const handleSubmit = () => {
-    setToDoTitle(toDoTitle.trim());
-    setToDoDescription(toDoDescription.trim());
-
-    if (!toDoTitle) {
-      setValidationMessage('ToDo title is required!');
-      return;
-    }
-
-    setValidationMessage('');
-
-    console.log('Todo data:', toDoTitle, toDoDescription);
-    updateToDo(toDoTitle, toDoDescription);
-    // console.log("Todo created:", toDo);
-  };
-
-  const handleSubmitDeleteToDo = () => {
-    deleteToDo();
-  };
-
   const updateRemoteToDo = async (id, data) => {
     try {
-      await wait(WAITING_TIME);
-      const response = await fetch(`${API_URL}tasks/${id}/`, {
-        method: 'PATCH',
-        body: data,
-        headers: {
-          'Content-Type': 'application/json; charset=UTF-8',
-          Userid: user.id,
-        },
-      });
-      const json = await response.json();
-      const resToDo = getToDoObject(json);
-      // setToDoList(
-      //   toDoList.map(toDoItem => {
-      //     if (toDoItem.id === resToDo.id) return resToDo;
-      //     return toDoItem;
-      //   }),
-      // );
-      console.log('data:', json);
-
+      await updateToDo(id, data);
       if (errorMessage) setErrorMessage('');
-
-      // succesfully updated
       setLoading(false);
-      // navigation.navigate('Home_to_ToDo');
       resetToScreen(navigation, 'Home_to_ToDo');
     } catch (error) {
       console.log(error);
@@ -117,31 +82,9 @@ export default UpdateToDoScreen = ({navigation, route}) => {
 
   const deleteRemoteToDo = async id => {
     try {
-      await wait(WAITING_TIME);
-      const response = await fetch(`${API_URL}tasks/${id}/`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json; charset=UTF-8',
-          Userid: user.id,
-        },
-      });
-      console.log(response);
-      // const json = await response.json();
-      // console.log(json);
-      // later
-      // setToDoList(
-      //   toDoList.filter(toDoItem => {
-      //     if (toDoItem.id === id) return false;
-      //     return true;
-      //   }),
-      // );
-      // console.log('data:', json);
-
+      await deleteToDo(id);
       if (errorMessage) setErrorMessage('');
-
-      // succesfully deleted
       setDeleting(false);
-      // navigation.navigate('Home_to_ToDo');
       resetToScreen(navigation, 'Home_to_ToDo');
     } catch (error) {
       console.log(error);
@@ -160,10 +103,7 @@ export default UpdateToDoScreen = ({navigation, route}) => {
       },
       {
         text: 'Delete',
-        onPress: () => {
-          console.log('Delete Pressed');
-          handleSubmitDeleteToDo();
-        },
+        onPress: handleSubmitDeleteToDo,
       },
     ]);
 
@@ -215,7 +155,7 @@ export default UpdateToDoScreen = ({navigation, route}) => {
               <TouchableOpacity
                 disabled={isLoading}
                 style={styles.submitButtonView}
-                onPress={() => createTwoButtonAlert()}>
+                onPress={createTwoButtonAlert}>
                 <Text style={styles.submitButtonTextView}>
                   {isDeleting ? (
                     <Text>
@@ -233,7 +173,7 @@ export default UpdateToDoScreen = ({navigation, route}) => {
                 <TouchableOpacity
                   disabled={isLoading}
                   style={styles.submitButtonView}
-                  onPress={() => handleSubmit()}>
+                  onPress={handleSubmit}>
                   <Text style={styles.submitButtonTextView}>
                     {isLoading ? (
                       <Text>

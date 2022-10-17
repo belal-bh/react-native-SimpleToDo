@@ -104,6 +104,22 @@ export function UtilContextProvider({children}) {
     }
   };
 
+  const deleteToDo = async id => {
+    try {
+      await wait(WAITING_TIME);
+      const response = await fetch(`${API_URL}tasks/${id}/`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+          Userid: user.id,
+        },
+      });
+    } catch (error) {
+      console.log(`ERROR at deleteToDo: ${error}`);
+      throw error;
+    }
+  };
+
   return (
     <UtilContext.Provider
       value={{
@@ -111,6 +127,7 @@ export function UtilContextProvider({children}) {
         getToDos,
         createToDo,
         updateToDo,
+        deleteToDo,
       }}>
       {children}
     </UtilContext.Provider>
