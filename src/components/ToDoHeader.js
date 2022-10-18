@@ -18,16 +18,7 @@ export default ToDoHeader = props => {
       loggedIn: false,
     });
 
-    // clear toDoList
     setToDoList([]);
-
-    // reset navigation
-    // navigation.dispatch(
-    //   CommonActions.reset({
-    //     index: 0,
-    //     routes: [{name: 'App_to_Home'}],
-    //   }),
-    // );
     resetToScreen(navigation, 'App_to_Home');
   };
 
