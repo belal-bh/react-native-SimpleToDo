@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 
@@ -7,21 +7,15 @@ import ToDoScreen from './src/screens/ToDoScreen';
 import CreateToDoScreen from './src/screens/CreateToDoScreen';
 import UpdateToDoScreen from './src/screens/UpdateToDoScreen';
 
-import {UserContext, userContextInitialValue} from './src/contexts/UserContext';
-import {
-  ToDoListContext,
-  toDoListContextInitialValue,
-} from './src/contexts/ToDoListContext';
+import {CommonContextProvider} from './src/contexts/CommonContext';
+import {UtilContextProvider} from './src/contexts/UtilContext';
 
 const Stack = createNativeStackNavigator();
 
 export default App = () => {
-  const [user, setUser] = useState(userContextInitialValue);
-  const [toDoList, setToDoList] = useState(toDoListContextInitialValue);
-
   return (
-    <UserContext.Provider value={{user, setUser}}>
-      <ToDoListContext.Provider value={{toDoList, setToDoList}}>
+    <CommonContextProvider>
+      <UtilContextProvider>
         <NavigationContainer>
           <Stack.Navigator initialRouteName="App_to_Home">
             <Stack.Screen
@@ -54,7 +48,7 @@ export default App = () => {
             />
           </Stack.Navigator>
         </NavigationContainer>
-      </ToDoListContext.Provider>
-    </UserContext.Provider>
+      </UtilContextProvider>
+    </CommonContextProvider>
   );
 };

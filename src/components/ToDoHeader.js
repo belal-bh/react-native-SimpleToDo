@@ -1,17 +1,15 @@
 import React, {useContext} from 'react';
-import {useNavigation, CommonActions} from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
 
 import {View, Text, Image, StyleSheet, TouchableOpacity} from 'react-native';
 
-import {UserContext} from '../contexts/UserContext';
-import {ToDoListContext} from '../contexts/ToDoListContext';
-import { resetToScreen } from '../helpers/helpers';
+import CommonContext from '../contexts/CommonContext';
+import {resetToScreen} from '../helpers/helpers';
 
 export default ToDoHeader = props => {
   const navigation = useNavigation();
 
-  const {user, setUser} = useContext(UserContext);
-  const {setToDoList} = useContext(ToDoListContext);
+  const {user, setUser, setToDoList} = useContext(CommonContext);
 
   const handleClickLogout = () => {
     console.log('Clicked!');
