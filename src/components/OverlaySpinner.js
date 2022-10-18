@@ -20,6 +20,6 @@ const styles = StyleSheet.create({
     zIndex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'transparent', // '#F5FCFF88',
+    backgroundColor: '#F5FCFF88', // 'transparent',
   },
 });
