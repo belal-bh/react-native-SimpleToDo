@@ -9,6 +9,16 @@ import {
   Image,
   ActivityIndicator,
 } from 'react-native';
+import {useSelector, useDispatch} from 'react-redux';
+
+import {
+  fetchTodos,
+  selectAllTodos,
+  selectTodoIds,
+  selectTodoById,
+} from '../features/todos/todosSlice';
+
+import {parseISO, formatDistanceToNow} from 'date-fns';
 
 import ToDoHeader from '../components/ToDoHeader';
 import OverlaySpinner from '../components/OverlaySpinner';
@@ -106,30 +116,127 @@ const Item = ({toDo, index}) => {
   );
 };
 
+const TodoExcerpt = ({todoId, index}) => {
+  const navigation = useNavigation();
+  const {toDoList} = useContext(CommonContext);
+  const {updateToDo} = useContext(UtilContext);
+
+  const [isLoading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  const toDo = useSelector(state => selectTodoById(state, todoId));
+
+  const date = parseISO(toDo.createdAt);
+
+  const handleClickUpdateToDo = () => {
+    console.log('clicked...');
+    navigation.navigate('ToDo_to_UpdateToDo', {
+      toDoIndex: index,
+      todoId: todoId,
+    });
+  };
+
+  return (
+    <View style={styles.itemViewContainer}>
+      <View style={styles.item}>
+        <TouchableOpacity
+          disabled={isLoading}
+          style={styles.titleContainerView}
+          onPress={handleClickUpdateToDo}>
+          <Text style={styles.title}>
+            <Text>
+              {index + 1}
+              {'. '}
+            </Text>
+            <Text
+              style={{
+                textDecorationLine: toDo.isCompleted ? 'line-through' : 'none',
+              }}>
+              {toDo.toDoTitle.length > 22
+                ? toDo.toDoTitle.slice(0, 22) + '...'
+                : toDo.toDoTitle}
+            </Text>
+          </Text>
+        </TouchableOpacity>
+        <View style={styles.itemRightSightView}>
+          <Text style={styles.itemDateView}>{dateToString(date)}</Text>
+          <TouchableOpacity
+            disabled={isLoading}
+            style={styles.itemCheckView}
+            onPress={() => console.log('complete todo')}>
+            {isLoading && <ActivityIndicator size="small" />}
+            {!isLoading && (
+              <Image
+                style={styles.toDoCompletionImageView}
+                source={
+                  toDo.isCompleted
+                    ? require('./../assets/imgs/done.png')
+                    : require('./../assets/imgs/due.png')
+                }
+              />
+            )}
+          </TouchableOpacity>
+        </View>
+      </View>
+      {errorMessage && (
+        <View style={styles.errorMessageContainer}>
+          <Text style={styles.errorMessageTextView}>{errorMessage}</Text>
+        </View>
+      )}
+    </View>
+  );
+};
+
 export default ToDoScreen = ({navigation, route}) => {
+  const todosIds = useSelector(selectTodoIds);
+  const status = useSelector(state => state.todos.status);
+  const error = useSelector(state => state.todos.error);
+  const dispatch = useDispatch();
+
+  console.log(`status: ${status}`);
+  console.log(`todosIds: ${todosIds}`);
+  console.log(`error: ${error}`);
+
   const {toDoList} = useContext(CommonContext);
   const {getToDos} = useContext(UtilContext);
 
-  const [isLoading, setLoading] = useState(true);
+  const [isLoading, setLoading] = useState(
+    status === 'loading' || status === 'idle',
+  );
   const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
-    const getAllToDos = async () => {
-      try {
-        await getToDos();
-        if (errorMessage) setErrorMessage('');
-      } catch (error) {
-        console.log(error);
-        setErrorMessage('Something went wrong.');
-      } finally {
-        setLoading(false);
-      }
-    };
-    getAllToDos();
-  }, []);
+    if (status === 'idle') {
+      dispatch(fetchTodos());
+      setLoading(true);
+    } else if (status === 'loading') {
+      setLoading(true);
+    } else {
+      setLoading(false);
+    }
+  }, [status, dispatch]);
+
+  // useEffect(() => {
+  //   const getAllToDos = async () => {
+  //     try {
+  //       await getToDos();
+  //       if (errorMessage) setErrorMessage('');
+  //     } catch (error) {
+  //       console.log(error);
+  //       setErrorMessage('Something went wrong.');
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+  //   getAllToDos();
+  // }, []);
 
   const renderItem = ({item, index}) => {
     return <Item toDo={item} index={index} />;
+  };
+
+  const renderTodoItem = ({item, index}) => {
+    return <TodoExcerpt todoId={item} index={index} />;
   };
 
   return (
@@ -158,11 +265,18 @@ export default ToDoScreen = ({navigation, route}) => {
               <Text style={{color: 'red'}}>{errorMessage}</Text>
             </View>
           )}
-          {toDoList.length > 0 && (
+          {toDoList.length > 0 && false && (
             <FlatList
               data={toDoList}
               renderItem={props => renderItem(props)}
               keyExtractor={(item, index) => item.id}
+            />
+          )}
+          {todosIds.length > 0 && (
+            <FlatList
+              data={todosIds}
+              renderItem={props => renderTodoItem(props)}
+              keyExtractor={(item, index) => item}
             />
           )}
         </View>

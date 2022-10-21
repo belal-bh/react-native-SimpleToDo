@@ -1,4 +1,4 @@
-import React, {useState, useContext} from 'react';
+import React, {useState, useContext, useEffect} from 'react';
 import {
   View,
   Text,
@@ -11,11 +11,42 @@ import {
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 
+import {useSelector, useDispatch} from 'react-redux';
+
+import {
+  addNewTodo,
+  resetAddTodoState,
+  resetUpdateTodoState,
+  resetDeleteTodoState,
+  resetTodosExtras,
+  selectTodosExtras,
+  selectTodosExtrasCurrentError,
+  selectTodosExtrasCurrentStatusLoading,
+  selectTodosExtrasCurrentStatusSucceeded,
+} from '../features/todos/todosSlice';
+
 import UtilContext from '../contexts/UtilContext';
 import {resetToScreen} from '../helpers/helpers';
 
 export default ToDoForm = ({toDo}) => {
   console.log('ToDoForm toDo:', toDo);
+
+  const dispatch = useDispatch();
+
+  let status = 'idle';
+  let error = null;
+  if (toDo?.id) {
+    status = useSelector(state => state.todos.extras.update.status);
+    error = useSelector(state => state.todos.extras.update.error);
+  } else {
+    status = useSelector(state => state.todos.extras.add.status);
+    error = useSelector(state => state.todos.extras.add.error);
+  }
+
+  const todosExtras = useSelector(state => selectTodosExtras(state));
+
+  console.log(`status: ${status}`);
+  console.log(`error: ${error}`);
 
   const navigation = useNavigation();
 
@@ -31,9 +62,30 @@ export default ToDoForm = ({toDo}) => {
   const [toDoIsCompleted, setToDoIsCompleted] = useState(
     toDo?.isCompleted ? true : false,
   );
-  const [isLoading, setLoading] = useState(false);
-  const [isDeleting, setDeleting] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
+  const [isLoading, setLoading] = useState(Boolean(status === 'loading'));
+  const [isDeleting, setDeleting] = useState(
+    Boolean(todosExtras.delete.status === 'loading'),
+  );
+  const [errorMessage, setErrorMessage] = useState(
+    useSelector(state => selectTodosExtrasCurrentError(state)),
+  );
+
+  const [isSucceeded, setSucceeded] = useState(
+    useSelector(state => selectTodosExtrasCurrentStatusSucceeded(state)),
+  );
+
+  useEffect(() => {
+    if (isSucceeded) {
+      console.log('redirecting');
+      if (toDo?.id) {
+        dispatch(resetUpdateTodoState());
+        dispatch(resetDeleteTodoState());
+      } else {
+        dispatch(resetAddTodoState());
+      }
+      resetToScreen(navigation, 'Home_to_ToDo');
+    }
+  }, [status, navigation, dispatch]);
 
   const handleSubmit = () => {
     setToDoTitle(toDoTitle.trim());
@@ -62,8 +114,8 @@ export default ToDoForm = ({toDo}) => {
         }),
       );
     } else {
-      uploadToDo(
-        JSON.stringify({
+      dispatch(
+        addNewTodo({
           title: toDoTitle,
           description: toDoDescription,
         }),
