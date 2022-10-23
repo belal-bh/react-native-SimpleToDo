@@ -1,4 +1,4 @@
-import React, {useState, useContext, useEffect} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   TextInput,
   ScrollView,
-  ActivityIndicator,
   Alert,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
@@ -15,42 +14,28 @@ import {useSelector, useDispatch} from 'react-redux';
 
 import {
   addNewTodo,
+  updateTodo,
+  deleteTodo,
   resetAddTodoState,
-  resetUpdateTodoState,
-  resetDeleteTodoState,
-  resetTodosExtras,
-  selectTodosExtras,
-  selectTodosExtrasCurrentError,
-  selectTodosExtrasCurrentStatusLoading,
-  selectTodosExtrasCurrentStatusSucceeded,
+  resetTodoStateById,
+  selectTodosExtrasAddStatus,
+  selectTodosExtrasAddError,
+  selectTodoById,
 } from '../features/todos/todosSlice';
 
-import UtilContext from '../contexts/UtilContext';
 import {resetToScreen} from '../helpers/helpers';
 
-export default ToDoForm = ({toDo}) => {
-  console.log('ToDoForm toDo:', toDo);
-
+export default ToDoForm = ({todoId}) => {
+  const navigation = useNavigation();
   const dispatch = useDispatch();
 
-  let status = 'idle';
-  let error = null;
-  if (toDo?.id) {
-    status = useSelector(state => state.todos.extras.update.status);
-    error = useSelector(state => state.todos.extras.update.error);
-  } else {
-    status = useSelector(state => state.todos.extras.add.status);
-    error = useSelector(state => state.todos.extras.add.error);
-  }
+  const toDo = todoId
+    ? useSelector(state => selectTodoById(state, todoId))
+    : undefined;
+  const hasToDo = todoId && toDo ? true : false;
 
-  const todosExtras = useSelector(state => selectTodosExtras(state));
-
-  console.log(`status: ${status}`);
-  console.log(`error: ${error}`);
-
-  const navigation = useNavigation();
-
-  const {createToDo, updateToDo, deleteToDo} = useContext(UtilContext);
+  const createTodoStatus = useSelector(selectTodosExtrasAddStatus);
+  const createTodosError = useSelector(selectTodosExtrasAddError);
 
   const [toDoTitle, setToDoTitle] = useState(
     toDo?.toDoTitle ? toDo.toDoTitle : '',
@@ -62,35 +47,44 @@ export default ToDoForm = ({toDo}) => {
   const [toDoIsCompleted, setToDoIsCompleted] = useState(
     toDo?.isCompleted ? true : false,
   );
-  const [isLoading, setLoading] = useState(Boolean(status === 'loading'));
-  const [isDeleting, setDeleting] = useState(
-    Boolean(todosExtras.delete.status === 'loading'),
-  );
-  const [errorMessage, setErrorMessage] = useState(
-    useSelector(state => selectTodosExtrasCurrentError(state)),
-  );
+  const isLoading =
+    Boolean(toDo?.status === 'loading') ||
+    Boolean(toDo?.status === 'deleting') ||
+    Boolean(createTodoStatus === 'creating');
 
-  const [isSucceeded, setSucceeded] = useState(
-    useSelector(state => selectTodosExtrasCurrentStatusSucceeded(state)),
-  );
+  const error = toDo?.error
+    ? toDo.error
+    : createTodosError
+    ? createTodosError
+    : null;
+
+  const errorMessage = error;
 
   useEffect(() => {
-    if (isSucceeded) {
-      console.log('redirecting');
-      if (toDo?.id) {
-        dispatch(resetUpdateTodoState());
-        dispatch(resetDeleteTodoState());
-      } else {
-        dispatch(resetAddTodoState());
-      }
+    if (todoId && !hasToDo) {
       resetToScreen(navigation, 'Home_to_ToDo');
     }
-  }, [status, navigation, dispatch]);
+    if (toDo?.status === 'succeeded') {
+      dispatch(resetTodoStateById(toDo.id));
+      resetToScreen(navigation, 'Home_to_ToDo');
+    } else if (toDo?.status === 'deleted') {
+      resetToScreen(navigation, 'Home_to_ToDo');
+    } else if (createTodoStatus === 'created') {
+      dispatch(resetAddTodoState());
+      resetToScreen(navigation, 'Home_to_ToDo');
+    }
+  }, [
+    hasToDo,
+    createTodoStatus,
+    toDo?.status,
+    toDo?.error,
+    toDo?.id,
+    dispatch,
+  ]);
 
   const handleSubmit = () => {
     setToDoTitle(toDoTitle.trim());
     setToDoDescription(toDoDescription.trim());
-
     if (!toDoTitle) {
       setValidationMessage('ToDo title is required.');
       return;
@@ -98,7 +92,6 @@ export default ToDoForm = ({toDo}) => {
     setValidationMessage('');
     console.log('Todo data:', toDoTitle, toDoDescription);
 
-    setLoading(true);
     if (toDo?.id) {
       const theToDo = {
         ...toDo,
@@ -106,11 +99,13 @@ export default ToDoForm = ({toDo}) => {
         toDoDescription,
       };
 
-      updateRemoteToDo(
-        theToDo.id,
-        JSON.stringify({
-          title: theToDo.toDoTitle,
-          description: theToDo.toDoDescription,
+      dispatch(
+        updateTodo({
+          id: theToDo.id,
+          data: {
+            title: theToDo.toDoTitle,
+            description: theToDo.toDoDescription,
+          },
         }),
       );
     } else {
@@ -124,51 +119,7 @@ export default ToDoForm = ({toDo}) => {
   };
 
   const handleSubmitDeleteToDo = () => {
-    setDeleting(true);
-    deleteRemoteToDo(toDo.id);
-  };
-
-  const uploadToDo = async data => {
-    try {
-      await createToDo(data);
-      if (errorMessage) setErrorMessage('');
-
-      setLoading(false);
-      resetToScreen(navigation, 'Home_to_ToDo');
-    } catch (error) {
-      console.log(error);
-      setErrorMessage('Something went wrong.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const updateRemoteToDo = async (id, data) => {
-    try {
-      await updateToDo(id, data);
-      if (errorMessage) setErrorMessage('');
-      setLoading(false);
-      resetToScreen(navigation, 'Home_to_ToDo');
-    } catch (error) {
-      console.log(error);
-      setErrorMessage('Something went wrong.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const deleteRemoteToDo = async id => {
-    try {
-      await deleteToDo(id);
-      if (errorMessage) setErrorMessage('');
-      setDeleting(false);
-      resetToScreen(navigation, 'Home_to_ToDo');
-    } catch (error) {
-      console.log(error);
-      setErrorMessage('Something went wrong.');
-    } finally {
-      setDeleting(false);
-    }
+    dispatch(deleteTodo({id: toDo.id}));
   };
 
   const createTwoButtonAlert = () =>
@@ -186,6 +137,7 @@ export default ToDoForm = ({toDo}) => {
 
   return (
     <View style={styles.mainContainer}>
+      {isLoading && <OverlaySpinner message="Processing..." />}
       <ToDoHeader />
       <View style={styles.container}>
         <View style={styles.headViewContainer}>
@@ -236,16 +188,7 @@ export default ToDoForm = ({toDo}) => {
                   disabled={isLoading}
                   style={styles.submitButtonView}
                   onPress={createTwoButtonAlert}>
-                  <Text style={styles.submitButtonTextView}>
-                    {isDeleting ? (
-                      <Text>
-                        <ActivityIndicator size="small" color="red" />
-                        <Text>Deleting</Text>
-                      </Text>
-                    ) : (
-                      'Delete'
-                    )}
-                  </Text>
+                  <Text style={styles.submitButtonTextView}>Delete</Text>
                 </TouchableOpacity>
               </View>
             )}
@@ -255,16 +198,7 @@ export default ToDoForm = ({toDo}) => {
                   disabled={isLoading}
                   style={styles.submitButtonView}
                   onPress={handleSubmit}>
-                  <Text style={styles.submitButtonTextView}>
-                    {isLoading ? (
-                      <Text>
-                        <ActivityIndicator size="small" color="#fff" />
-                        <Text>Updating</Text>
-                      </Text>
-                    ) : (
-                      'Update'
-                    )}
-                  </Text>
+                  <Text style={styles.submitButtonTextView}>Update</Text>
                 </TouchableOpacity>
               </View>
             )}
@@ -274,16 +208,7 @@ export default ToDoForm = ({toDo}) => {
                   disabled={isLoading}
                   style={styles.submitButtonView}
                   onPress={handleSubmit}>
-                  <Text style={styles.submitButtonTextView}>
-                    {isLoading ? (
-                      <Text>
-                        <ActivityIndicator size="small" color="#fff" />
-                        <Text>Uploading</Text>
-                      </Text>
-                    ) : (
-                      'Create'
-                    )}
-                  </Text>
+                  <Text style={styles.submitButtonTextView}>Create</Text>
                 </TouchableOpacity>
               </View>
             )}

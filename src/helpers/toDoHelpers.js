@@ -22,6 +22,8 @@ export const getToDoObjectSerializable = data => {
     createdAt: data?.created_at ? data.created_at : null,
     isCompleted:
       typeof data?.is_completed === 'boolean' ? data.is_completed : false,
+    status: 'idle',
+    error: null,
   };
   return toDo;
 };

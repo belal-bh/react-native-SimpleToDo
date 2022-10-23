@@ -6,7 +6,6 @@ import {
 
 import {API_URL, WAITING_TIME} from '../../config';
 import {
-  getToDoObjectList,
   getToDoObjectListSerializable,
   getToDoObjectSerializable,
 } from '../../helpers/toDoHelpers';
@@ -44,8 +43,47 @@ export const addNewTodo = createAsyncThunk('todos/addNewTodo', async data => {
   return getToDoObjectSerializable(json);
 });
 
+export const updateTodo = createAsyncThunk(
+  'todos/updateTodo',
+  async ({id, data}) => {
+    console.log(
+      `id=${id}, data=${data?.title ? data.title : data?.is_completed}`,
+    );
+    await wait(WAITING_TIME);
+    const response = await fetch(`${API_URL}tasks/${id}/`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+      headers: {
+        'Content-Type': 'application/json; charset=UTF-8',
+        Userid: 1,
+      },
+    });
+    if (!response.ok) {
+      throw new Error(`${response.status} ${response.statusText}`);
+    }
+    const json = await response.json();
+    return getToDoObjectSerializable(json);
+  },
+);
+
+export const deleteTodo = createAsyncThunk('todos/deleteTodo', async ({id}) => {
+  console.log(`id=${id}`);
+  await wait(WAITING_TIME);
+  const response = await fetch(`${API_URL}tasks/${id}/`, {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json; charset=UTF-8',
+      Userid: 1,
+    },
+  });
+  if (!response.ok) {
+    throw new Error(`${response.status} ${response.statusText}`);
+  }
+  console.log(response);
+});
+
 const todosAdapter = createEntityAdapter({
-  sortComparer: (a, b) => a.createdAt.localeCompare(b.createdAt),
+  sortComparer: (a, b) => b.createdAt.localeCompare(a.createdAt),
 });
 
 export const {
@@ -53,6 +91,16 @@ export const {
   selectIds: selectTodoIds,
   selectById: selectTodoById,
 } = todosAdapter.getSelectors(state => state.todos);
+
+export const selectTodoStatusById = (state, todoId) => {
+  const todo = selectTodoById(state, todoId);
+  return todo.status;
+};
+
+export const selectTodoErrorById = (state, todoId) => {
+  const todo = selectTodoById(state, todoId);
+  return todo.error;
+};
 
 const todosSlice = createSlice({
   name: 'todos',
@@ -64,37 +112,28 @@ const todosSlice = createSlice({
         status: 'idle',
         error: null,
       },
-      update: {
-        status: 'idle',
-        error: null,
-      },
-      delete: {
-        status: 'idle',
-        error: null,
-      },
     },
   }),
   reducers: {
     resetAddTodoState(state, action) {
-      console.log('resetAddTodoState');
       state.extras.add.status = 'idle';
       state.extras.add.error = null;
-    },
-    resetUpdateTodoState(state, action) {
-      state.extras.update.status = 'idle';
-      state.extras.update.error = null;
-    },
-    resetDeleteTodoState(state, action) {
-      state.extras.delete.status = 'idle';
-      state.extras.delete.error = null;
     },
     resetTodosExtras(state, action) {
       state.extras.add.status = 'idle';
       state.extras.add.error = null;
-      state.extras.update.status = 'idle';
-      state.extras.update.error = null;
-      state.extras.delete.status = 'idle';
-      state.extras.delete.error = null;
+    },
+    todosCleared: todosAdapter.removeAll,
+    resetTodosState(state, action) {
+      if (state.status !== 'idle') state.status = 'idle';
+      if (state.error !== null) state.error = null;
+    },
+    resetTodoStateById(state, action) {
+      const todoId = action.payload;
+      todosAdapter.updateOne(state, {
+        id: todoId,
+        changes: {status: 'idle', error: null},
+      });
     },
   },
   extraReducers: {
@@ -109,70 +148,113 @@ const todosSlice = createSlice({
       }
     },
     [fetchTodos.rejected]: (state, action) => {
-      if (state.status === 'loading') {
-        state.status = 'failed';
-        state.error = action.error.message;
-        console.log(action);
-      }
+      state.status = 'failed';
+      state.error = action.error.message;
     },
     [addNewTodo.pending]: (state, action) => {
-      state.extras.add.status = 'loading';
+      state.extras.add.status = 'creating';
       state.extras.add.error = null;
     },
     [addNewTodo.fulfilled]: (state, action) => {
-      if (state.extras.add.status === 'loading') {
-        todosAdapter.addOne(state, action);
-        state.extras.add.status = 'succeeded';
-      }
+      todosAdapter.addOne(state, action.payload);
+      state.extras.add.status = 'created';
     },
     [addNewTodo.rejected]: (state, action) => {
-      if (state.extras.add.status === 'loading') {
-        state.extras.add.status = 'failed';
-        state.extras.add.error = action.error.message;
-        console.log(action);
-      }
+      state.extras.add.status = 'failed';
+      state.extras.add.error = action.error.message;
+    },
+    [updateTodo.pending]: (state, action) => {
+      const id = action.meta.arg.id;
+      todosAdapter.updateOne(state, {
+        id,
+        changes: {
+          status: 'loading',
+          error: null,
+        },
+      });
+    },
+    [updateTodo.fulfilled]: (state, action) => {
+      const {id, toDoTitle, toDoDescription, isCompleted} = action.payload;
+      todosAdapter.updateOne(state, {
+        id,
+        changes: {
+          toDoTitle,
+          toDoDescription,
+          isCompleted,
+          status: 'succeeded',
+          error: null,
+        },
+      });
+    },
+    [updateTodo.rejected]: (state, action) => {
+      const id = action.meta.arg.id;
+      todosAdapter.updateOne(state, {
+        id,
+        changes: {
+          status: 'failed',
+          error: action.error.message,
+        },
+      });
+    },
+    [deleteTodo.pending]: (state, action) => {
+      const id = action.meta.arg.id;
+      todosAdapter.updateOne(state, {
+        id,
+        changes: {
+          status: 'deleting',
+          error: null,
+        },
+      });
+    },
+    [deleteTodo.fulfilled]: (state, action) => {
+      const id = action.meta.arg.id;
+      todosAdapter.updateOne(state, {
+        id,
+        changes: {
+          status: 'deleted',
+          error: null,
+        },
+      });
+      todosAdapter.removeOne(state, id);
+    },
+    [deleteTodo.rejected]: (state, action) => {
+      const id = action.meta.arg.id;
+      todosAdapter.updateOne(state, {
+        id,
+        changes: {
+          status: 'failed',
+          error: action.error.message,
+        },
+      });
     },
   },
 });
+
+export const selectTodosStatus = state => state.todos.status;
+export const selectTodosError = state => state.todos.error;
+export const selectTodosStatusLoading = state =>
+  Boolean(state.todos.status === 'loading');
+export const selectTodosStatusSucceeded = state =>
+  Boolean(state.todos.status === 'succeeded');
 
 export const selectTodosExtras = state => state.todos.extras;
 export const selectTodosExtrasAddStatus = state =>
   state.todos.extras.add.status;
 export const selectTodosExtrasAddError = state => state.todos.extras.add.error;
-export const selectTodosExtrasUpdateStatus = state =>
-  state.todos.extras.update.status;
-export const selectTodosExtrasUpdateError = state =>
-  state.todos.extras.update.error;
-export const selectTodosExtrasDeleteStatus = state =>
-  state.todos.extras.delete.status;
-export const selectTodosExtrasDeleteError = state =>
-  state.todos.extras.delete.error;
-export const selectTodosExtrasCurrentError = state => {
-  let error = state.todos.extras.add.error
-    ? state.todos.extras.add.error
-    : state.todos.extras.update.error
-    ? state.todos.extras.update.error
-    : state.todos.extras.delete.error;
-  return error;
-};
 
-export const selectTodosExtrasCurrentStatusLoading = state => {
-  return (
-    Boolean(state.todos.extras.add.status === 'loading') ||
-    Boolean(state.todos.extras.update.status === 'loading') ||
-    Boolean(state.todos.extras.delete.status === 'loading')
-  );
-};
-
-export const selectTodosExtrasCurrentStatusSucceeded = state => {
-  return (
-    Boolean(state.todos.extras.add.status === 'succeeded') ||
-    Boolean(state.todos.extras.update.status === 'succeeded') ||
-    Boolean(state.todos.extras.delete.status === 'succeeded')
-  );
-};
-
-export const {resetAddTodoState, resetUpdateTodoState, resetDeleteTodoState} =
-  todosSlice.actions;
+export const {
+  resetAddTodoState,
+  resetTodosExtras,
+  todosCleared,
+  resetTodosState,
+  resetTodoStateById,
+} = todosSlice.actions;
 
 export default todosSlice.reducer;
+
+export const reloadAllTodos = () => async dispatch => {
+  dispatch(resetTodosState());
+  dispatch(resetTodosExtras());
+  // dispatch(todosCleared());
+  dispatch(fetchTodos());
+};
