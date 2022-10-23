@@ -1,4 +1,4 @@
-import React, {useState, useContext} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   StyleSheet,
@@ -6,22 +6,36 @@ import {
   TextInput,
   TouchableOpacity,
 } from 'react-native';
+import {useSelector, useDispatch} from 'react-redux';
 
-import CommonContext from '../contexts/CommonContext';
-import UtilContext from '../contexts/UtilContext';
+import {
+  selectUser,
+  loginUser,
+  selectUserStatus,
+  selectUserError,
+} from '../features/users/userSlice';
 
 import ToDoHeader from '../components/ToDoHeader';
 import OverlaySpinner from '../components/OverlaySpinner';
 import {resetToScreen} from '../helpers/helpers';
 
 export default HomeScreen = ({navigation}) => {
-  const {user} = useContext(CommonContext);
-  const {login} = useContext(UtilContext);
+  const dispatch = useDispatch();
+  const user = useSelector(selectUser);
+  const status = useSelector(selectUserStatus);
+  const error = useSelector(selectUserError);
+
+  const isLoading = Boolean(status === 'loading');
+  const errorMessage = error;
 
   const [userName, setUserName] = useState(user.userFullName);
   const [validationMessage, setValidationMessage] = useState('');
-  const [isLoading, setLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
+
+  useEffect(() => {
+    if (Boolean(status === 'succeeded')) {
+      resetToScreen(navigation, 'Home_to_ToDo');
+    }
+  }, [status]);
 
   const handleSubmit = () => {
     setUserName(userName.trim());
@@ -31,22 +45,7 @@ export default HomeScreen = ({navigation}) => {
     }
     setValidationMessage('');
 
-    setLoading(true);
-    loginUser(userName);
-  };
-
-  const loginUser = async userName => {
-    try {
-      await login(userName);
-      setLoading(false);
-      resetToScreen(navigation, 'Home_to_ToDo');
-    } catch (error) {
-      console.log(error);
-      setErrorMessage('Something went wrong.');
-    } finally {
-      setLoading(false);
-      console.log(`Hi ${userName}!`);
-    }
+    dispatch(loginUser({username: userName}));
   };
 
   return (

@@ -124,7 +124,7 @@ export default ToDoScreen = ({navigation, route}) => {
   const isLoading = useSelector(selectTodosStatusLoading);
   const errorMessage = useSelector(selectTodosError);
   console.log(
-    `Loading: ${isLoading} , status: ${status}, error: ${errorMessage}, todosIds: ${todosIds} `,
+    `Loading: ${isLoading} , status: ${status}, error: ${errorMessage}, total todosIds: ${todosIds.length} `,
   );
 
   useEffect(() => {

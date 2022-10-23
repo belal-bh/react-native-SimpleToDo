@@ -11,12 +11,17 @@ import {
 } from '../../helpers/toDoHelpers';
 import {wait} from '../../helpers/helpers';
 
+import {selectUserId} from '../users/userSlice';
+import store from '../../app/store';
+
 export const fetchTodos = createAsyncThunk('todos/fetchTodos', async () => {
+  const userId = selectUserId(store.getState());
+  console.log('userId:', userId);
   await wait(WAITING_TIME);
   const response = await fetch(`${API_URL}tasks/`, {
     headers: {
       'Content-Type': 'application/json; charset=UTF-8',
-      Userid: 1,
+      Userid: userId,
     },
   });
   if (!response.ok) {
@@ -27,13 +32,15 @@ export const fetchTodos = createAsyncThunk('todos/fetchTodos', async () => {
 });
 
 export const addNewTodo = createAsyncThunk('todos/addNewTodo', async data => {
+  const userId = selectUserId(store.getState());
+  console.log('userId:', userId);
   await wait(WAITING_TIME);
   const response = await fetch(`${API_URL}tasks/`, {
     method: 'POST',
     body: JSON.stringify(data),
     headers: {
       'Content-Type': 'application/json; charset=UTF-8',
-      Userid: 1,
+      Userid: userId,
     },
   });
   if (!response.ok) {
@@ -46,6 +53,8 @@ export const addNewTodo = createAsyncThunk('todos/addNewTodo', async data => {
 export const updateTodo = createAsyncThunk(
   'todos/updateTodo',
   async ({id, data}) => {
+    const userId = selectUserId(store.getState());
+    console.log('userId:', userId);
     console.log(
       `id=${id}, data=${data?.title ? data.title : data?.is_completed}`,
     );
@@ -55,7 +64,7 @@ export const updateTodo = createAsyncThunk(
       body: JSON.stringify(data),
       headers: {
         'Content-Type': 'application/json; charset=UTF-8',
-        Userid: 1,
+        Userid: userId,
       },
     });
     if (!response.ok) {
@@ -67,19 +76,21 @@ export const updateTodo = createAsyncThunk(
 );
 
 export const deleteTodo = createAsyncThunk('todos/deleteTodo', async ({id}) => {
+  const userId = selectUserId(store.getState());
+  console.log('userId:', userId);
   console.log(`id=${id}`);
   await wait(WAITING_TIME);
   const response = await fetch(`${API_URL}tasks/${id}/`, {
     method: 'DELETE',
     headers: {
       'Content-Type': 'application/json; charset=UTF-8',
-      Userid: 1,
+      Userid: userId,
     },
   });
   if (!response.ok) {
     throw new Error(`${response.status} ${response.statusText}`);
   }
-  console.log(response);
+  // console.log(response);
 });
 
 const todosAdapter = createEntityAdapter({
@@ -257,4 +268,10 @@ export const reloadAllTodos = () => async dispatch => {
   dispatch(resetTodosExtras());
   // dispatch(todosCleared());
   dispatch(fetchTodos());
+};
+
+export const resetTodos = () => dispatch => {
+  dispatch(resetTodosState());
+  dispatch(resetTodosExtras());
+  dispatch(todosCleared());
 };

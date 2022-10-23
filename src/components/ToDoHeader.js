@@ -1,26 +1,29 @@
-import React, {useContext} from 'react';
-import {useNavigation} from '@react-navigation/native';
+import React, {useEffect} from 'react';
+import {useNavigation, useRoute} from '@react-navigation/native';
 
 import {View, Text, Image, StyleSheet, TouchableOpacity} from 'react-native';
+import {useSelector, useDispatch} from 'react-redux';
 
-import CommonContext from '../contexts/CommonContext';
+import {selectUser, logoutAndResetStore} from '../features/users/userSlice';
+import {selectTodoIds} from '../features/todos/todosSlice';
 import {resetToScreen} from '../helpers/helpers';
 
 export default ToDoHeader = props => {
   const navigation = useNavigation();
+  const route = useRoute();
 
-  const {user, setUser, setToDoList} = useContext(CommonContext);
+  const dispatch = useDispatch();
+  const user = useSelector(selectUser);
 
   const handleClickLogout = () => {
-    console.log('Clicked!');
-    setUser({
-      userFullName: '',
-      loggedIn: false,
-    });
-
-    setToDoList([]);
-    resetToScreen(navigation, 'App_to_Home');
+    dispatch(logoutAndResetStore());
   };
+
+  useEffect(() => {
+    if (!user.loggedIn && !Boolean(route.name === 'App_to_Home')) {
+      resetToScreen(navigation, 'App_to_Home');
+    }
+  }, [user.loggedIn, route.name]);
 
   return (
     <View style={styles.container}>
