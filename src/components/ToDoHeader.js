@@ -5,7 +5,6 @@ import {View, Text, Image, StyleSheet, TouchableOpacity} from 'react-native';
 import {useSelector, useDispatch} from 'react-redux';
 
 import {selectUser, logoutAndResetStore} from '../features/users/userSlice';
-import {selectTodoIds} from '../features/todos/todosSlice';
 import {resetToScreen} from '../helpers/helpers';
 
 export default ToDoHeader = props => {
