@@ -12,7 +12,7 @@ import {
 import {wait} from '../../helpers/helpers';
 
 import {selectUserId} from '../users/userSlice';
-import store from '../../app/store';
+import {store} from '../../app/store';
 
 export const fetchTodos = createAsyncThunk('todos/fetchTodos', async () => {
   const userId = selectUserId(store.getState());
