@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useEffect} from 'react';
 import {
   View,
   StyleSheet,
@@ -11,7 +11,6 @@ import {Formik} from 'formik';
 import * as Yup from 'yup';
 
 import {
-  selectUser,
   loginUser,
   selectUserStatus,
   selectUserError,
@@ -23,7 +22,6 @@ import {resetToScreen} from '../helpers/helpers';
 
 export default HomeScreen = ({navigation}) => {
   const dispatch = useDispatch();
-  const user = useSelector(selectUser);
   const status = useSelector(selectUserStatus);
   const error = useSelector(selectUserError);
 
@@ -47,7 +45,7 @@ export default HomeScreen = ({navigation}) => {
             .max(18, 'Must be 18 characters or less')
             .required('User Name is required'),
         })}
-        onSubmit={(values, {setSubmitting}) => {
+        onSubmit={values => {
           dispatch(loginUser({username: values.userName}));
         }}>
         {({handleChange, handleBlur, handleSubmit, values, errors}) =>

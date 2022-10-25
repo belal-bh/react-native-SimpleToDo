@@ -7,8 +7,22 @@ import todosReducer from '../features/todos/todosSlice';
 import userReducer from '../features/users/userSlice';
 
 const rootReducer = combineReducers({
-  todos: todosReducer,
-  user: userReducer,
+  todos: persistReducer(
+    {
+      key: 'todos',
+      storage: AsyncStorage,
+      blacklist: ['status', 'error', 'extras'],
+    },
+    todosReducer,
+  ),
+  user: persistReducer(
+    {
+      key: 'user',
+      storage: AsyncStorage,
+      blacklist: ['status', 'error', 'user.loggedIn'],
+    },
+    userReducer,
+  ),
 });
 
 const persistConfig = {
@@ -24,3 +38,14 @@ export const store = configureStore({
 });
 
 export const persistor = persistStore(store);
+
+export const clearAsyncStorage = async () => {
+  try {
+    await AsyncStorage.clear();
+  } catch (e) {
+    // clear error
+    console.error(e);
+  }
+
+  console.log('Done clearAsyncStorage.');
+};
