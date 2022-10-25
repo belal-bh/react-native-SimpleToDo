@@ -7,6 +7,8 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import {useSelector, useDispatch} from 'react-redux';
+import {Formik} from 'formik';
+import * as Yup from 'yup';
 
 import {
   selectUser,
@@ -28,65 +30,63 @@ export default HomeScreen = ({navigation}) => {
   const isLoading = Boolean(status === 'loading');
   const errorMessage = error;
 
-  const [userName, setUserName] = useState(user.userFullName);
-  const [validationMessage, setValidationMessage] = useState('');
-
   useEffect(() => {
     if (Boolean(status === 'succeeded')) {
       resetToScreen(navigation, 'Home_to_ToDo');
     }
   }, [status]);
 
-  const handleSubmit = () => {
-    setUserName(userName.trim());
-    if (!userName) {
-      setValidationMessage('Name is required.');
-      return;
-    }
-    setValidationMessage('');
-
-    dispatch(loginUser({username: userName}));
-  };
-
   return (
     <View style={styles.mainContainer}>
       {isLoading && <OverlaySpinner color="green" message="Wait a second..." />}
       <ToDoHeader />
-      {!isLoading && (
-        <View style={styles.container}>
-          {errorMessage && (
-            <View style={styles.errorMessageContainer}>
-              <Text style={styles.errorMessageTextView}>{errorMessage}</Text>
+      <Formik
+        initialValues={{userName: ''}}
+        validationSchema={Yup.object({
+          userName: Yup.string()
+            .max(18, 'Must be 18 characters or less')
+            .required('User Name is required'),
+        })}
+        onSubmit={(values, {setSubmitting}) => {
+          dispatch(loginUser({username: values.userName}));
+        }}>
+        {({handleChange, handleBlur, handleSubmit, values, errors}) =>
+          !isLoading ? (
+            <View style={styles.container}>
+              {errorMessage && (
+                <View style={styles.errorMessageContainer}>
+                  <Text style={styles.errorMessageTextView}>
+                    {errorMessage}
+                  </Text>
+                </View>
+              )}
+              <View style={styles.inputContainerView}>
+                <TextInput
+                  style={styles.textInputView}
+                  placeholder="Your Name"
+                  maxLength={18}
+                  value={values.userName}
+                  onChangeText={handleChange('userName')}
+                  onBlur={handleBlur('userName')}
+                />
+                {errors.userName && (
+                  <Text style={styles.validationMessageView}>
+                    {errors.userName}
+                  </Text>
+                )}
+              </View>
+              <View style={styles.buttonViewContainer}>
+                <TouchableOpacity
+                  disabled={isLoading}
+                  style={styles.buttonViewContainer}
+                  onPress={errors.userName ? null : handleSubmit}>
+                  <Text style={styles.buttonTextView}>Next</Text>
+                </TouchableOpacity>
+              </View>
             </View>
-          )}
-          <View style={styles.inputContainerView}>
-            <TextInput
-              style={styles.textInputView}
-              placeholder="Your Name"
-              maxLength={18}
-              value={userName}
-              onChangeText={text => {
-                text = text.slice(0, 18);
-                setUserName(text);
-                if (text && validationMessage) setValidationMessage('');
-              }}
-            />
-            {validationMessage && (
-              <Text style={styles.validationMessageView}>
-                {validationMessage}
-              </Text>
-            )}
-          </View>
-          <View style={styles.buttonViewContainer}>
-            <TouchableOpacity
-              disabled={isLoading}
-              style={styles.buttonViewContainer}
-              onPress={handleSubmit}>
-              <Text style={styles.buttonTextView}>Next</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      )}
+          ) : null
+        }
+      </Formik>
     </View>
   );
 };
